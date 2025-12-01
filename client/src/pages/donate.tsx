@@ -27,10 +27,15 @@ import {
   Search,
   User,
   ArrowLeft,
+  Lock,
+  X,
 } from "lucide-react";
 import logoUrl from "@assets/logo.svg";
 
 export default function Donate() {
+  const [cashDonationStep, setCashDonationStep] = useState<"initial" | "payment">("initial");
+  const [cashAmount, setCashAmount] = useState("");
+
   return (
     <div className="min-h-screen bg-background font-sans">
       {/* Header */}
@@ -109,33 +114,53 @@ export default function Donate() {
                 </TabsList>
 
                 <TabsContent value="cash" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-primary/10">
-                    <div className="space-y-6">
-                      <div>
-                        <label className="block text-sm font-bold mb-2 uppercase tracking-wide text-primary/80">Amount (NZD)</label>
-                        <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-primary">$</span>
-                          <Input 
-                            type="number" 
-                            placeholder="0" 
-                            className="pl-10 h-16 text-2xl font-bold rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 bg-white"
-                          />
+                  {cashDonationStep === "initial" ? (
+                    <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-primary/10">
+                      <div className="space-y-6">
+                        <div>
+                          <label className="block text-sm font-bold mb-2 uppercase tracking-wide text-primary/80">Amount (NZD)</label>
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-primary">$</span>
+                            <Input 
+                              type="number" 
+                              placeholder="0" 
+                              value={cashAmount}
+                              onChange={(e) => setCashAmount(e.target.value)}
+                              className="pl-10 h-16 text-2xl font-bold rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 bg-white"
+                              data-testid="input-cash-amount"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-3">
-                        {[10, 20, 50].map((amount) => (
-                          <Button key={amount} variant="outline" className="h-12 rounded-xl border-2 border-primary/20 hover:bg-primary/5 hover:border-primary text-lg font-semibold">
-                            ${amount}
-                          </Button>
-                        ))}
-                      </div>
+                        
+                        <div className="grid grid-cols-3 gap-3">
+                          {[10, 20, 50].map((amount) => (
+                            <Button 
+                              key={amount} 
+                              variant="outline" 
+                              onClick={() => setCashAmount(amount.toString())}
+                              className="h-12 rounded-xl border-2 border-primary/20 hover:bg-primary/5 hover:border-primary text-lg font-semibold"
+                              data-testid={`button-amount-${amount}`}
+                            >
+                              ${amount}
+                            </Button>
+                          ))}
+                        </div>
 
-                      <Button className="w-full h-16 rounded-2xl text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.01]">
-                        Donate Now
-                      </Button>
+                        <Button 
+                          onClick={() => setCashDonationStep("payment")}
+                          className="w-full h-16 rounded-2xl text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.01]"
+                          data-testid="button-donate-cash"
+                        >
+                          Donate Now
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <CashPaymentForm 
+                      amount={cashAmount}
+                      onBack={() => setCashDonationStep("initial")}
+                    />
+                  )}
                 </TabsContent>
 
                 <TabsContent value="crypto" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -230,6 +255,284 @@ export default function Donate() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => void }) {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    cardNumber: "",
+    cvc: "",
+    cardholderName: "",
+    expiration: "",
+    country: "New Zealand",
+    address1: "",
+    address2: "",
+    city: "",
+    region: "Wellington",
+    zip: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-primary/10 overflow-hidden">
+      {/* Header with close button */}
+      <div className="bg-slate-700 text-white px-6 py-4 flex items-center justify-between rounded-t-3xl">
+        <h2 className="text-lg font-bold">Payment Details</h2>
+        <button 
+          onClick={onBack}
+          className="p-1 hover:bg-slate-600 rounded-lg transition-colors"
+          data-testid="button-close-payment"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
+        {/* Personal Information */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                First Name <span className="text-red-500">*</span>
+                <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+              </label>
+              <Input 
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="First Name" 
+                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                data-testid="input-payment-firstName"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Last Name <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+              </label>
+              <Input 
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Last Name" 
+                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                data-testid="input-payment-lastName"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Email Address <span className="text-red-500">*</span>
+              <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+            </label>
+            <Input 
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Email Address" 
+              className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+              data-testid="input-payment-email"
+            />
+          </div>
+        </div>
+
+        {/* Credit Card Information */}
+        <div className="space-y-4 pt-4 border-t border-slate-200">
+          <h3 className="font-bold text-slate-900">Credit Card Info</h3>
+          
+          <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <Lock className="w-4 h-4 text-blue-600" />
+            <span className="text-sm text-blue-700">This is a secure SSL encrypted payment.</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Card Number <span className="text-red-500">*</span>
+                <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+              </label>
+              <Input 
+                name="cardNumber"
+                value={formData.cardNumber}
+                onChange={handleChange}
+                placeholder="Card Number" 
+                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                data-testid="input-card-number"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                CVC <span className="text-red-500">*</span>
+                <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+              </label>
+              <Input 
+                name="cvc"
+                value={formData.cvc}
+                onChange={handleChange}
+                placeholder="CVC" 
+                maxLength={4}
+                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                data-testid="input-cvc"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Cardholder Name <span className="text-red-500">*</span>
+                <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+              </label>
+              <Input 
+                name="cardholderName"
+                value={formData.cardholderName}
+                onChange={handleChange}
+                placeholder="Cardholder Name" 
+                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                data-testid="input-cardholder-name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Expiration <span className="text-red-500">*</span>
+                <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+              </label>
+              <Input 
+                name="expiration"
+                value={formData.expiration}
+                onChange={handleChange}
+                placeholder="MM / YY" 
+                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                data-testid="input-expiration"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Billing Details */}
+        <div className="space-y-4 pt-4 border-t border-slate-200">
+          <h3 className="font-bold text-slate-900">Billing Details</h3>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Country <span className="text-red-500">*</span>
+              <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+            </label>
+            <select 
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+              className="w-full h-10 rounded-lg border border-slate-300 px-3 text-slate-600 font-medium"
+              data-testid="select-country"
+            >
+              <option>New Zealand</option>
+              <option>Australia</option>
+              <option>United States</option>
+              <option>United Kingdom</option>
+              <option>Canada</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Address 1 <span className="text-red-500">*</span>
+              <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+            </label>
+            <Input 
+              name="address1"
+              value={formData.address1}
+              onChange={handleChange}
+              placeholder="Address line 1" 
+              className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+              data-testid="input-address1-payment"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Address 2 <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+            </label>
+            <Input 
+              name="address2"
+              value={formData.address2}
+              onChange={handleChange}
+              placeholder="Address line 2" 
+              className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+              data-testid="input-address2-payment"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              City <span className="text-red-500">*</span>
+              <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+            </label>
+            <Input 
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              placeholder="City" 
+              className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+              data-testid="input-city-payment"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Region <span className="text-red-500">*</span>
+                <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+              </label>
+              <select 
+                name="region"
+                value={formData.region}
+                onChange={handleChange}
+                className="w-full h-10 rounded-lg border border-slate-300 px-3 text-slate-600 font-medium"
+                data-testid="select-region"
+              >
+                <option>Wellington</option>
+                <option>Auckland</option>
+                <option>Christchurch</option>
+                <option>Dunedin</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Zip / Postal Code <span className="text-red-500">*</span>
+                <Info className="inline w-4 h-4 ml-1 text-slate-400" />
+              </label>
+              <Input 
+                name="zip"
+                value={formData.zip}
+                onChange={handleChange}
+                placeholder="Zip / Postal Code" 
+                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                data-testid="input-zip-payment"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Donate Button */}
+        <Button 
+          className="w-full h-12 rounded-lg text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-6"
+          data-testid="button-complete-donation"
+        >
+          Please Donate Now - ${amount || "0"}
+        </Button>
+      </div>
     </div>
   );
 }
