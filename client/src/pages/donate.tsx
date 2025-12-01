@@ -40,7 +40,7 @@ import logoUrl from "@assets/logo.svg";
 
 export default function Donate() {
   const [cashDonationStep, setCashDonationStep] = useState<"initial" | "payment">("initial");
-  const [cashAmount, setCashAmount] = useState("");
+  const [cashAmount, setCashAmount] = useState("100");
 
   return (
     <div className="min-h-screen bg-background font-sans">
