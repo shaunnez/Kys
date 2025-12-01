@@ -11,6 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -114,53 +120,58 @@ export default function Donate() {
                 </TabsList>
 
                 <TabsContent value="cash" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {cashDonationStep === "initial" ? (
-                    <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-primary/10">
-                      <div className="space-y-6">
-                        <div>
-                          <label className="block text-sm font-bold mb-2 uppercase tracking-wide text-primary/80">Amount (NZD)</label>
-                          <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-primary">$</span>
-                            <Input 
-                              type="number" 
-                              placeholder="0" 
-                              value={cashAmount}
-                              onChange={(e) => setCashAmount(e.target.value)}
-                              className="pl-10 h-16 text-2xl font-bold rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 bg-white"
-                              data-testid="input-cash-amount"
-                            />
-                          </div>
+                  <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-primary/10">
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-bold mb-2 uppercase tracking-wide text-primary/80">Amount (NZD)</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-primary">$</span>
+                          <Input 
+                            type="number" 
+                            placeholder="0" 
+                            value={cashAmount}
+                            onChange={(e) => setCashAmount(e.target.value)}
+                            className="pl-10 h-16 text-2xl font-bold rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 bg-white"
+                            data-testid="input-cash-amount"
+                          />
                         </div>
-                        
-                        <div className="grid grid-cols-3 gap-3">
-                          {[10, 20, 50].map((amount) => (
-                            <Button 
-                              key={amount} 
-                              variant="outline" 
-                              onClick={() => setCashAmount(amount.toString())}
-                              className="h-12 rounded-xl border-2 border-primary/20 hover:bg-primary/5 hover:border-primary text-lg font-semibold"
-                              data-testid={`button-amount-${amount}`}
-                            >
-                              ${amount}
-                            </Button>
-                          ))}
-                        </div>
-
-                        <Button 
-                          onClick={() => setCashDonationStep("payment")}
-                          className="w-full h-16 rounded-2xl text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.01]"
-                          data-testid="button-donate-cash"
-                        >
-                          Donate Now
-                        </Button>
                       </div>
+                      
+                      <div className="grid grid-cols-3 gap-3">
+                        {[10, 20, 50].map((amount) => (
+                          <Button 
+                            key={amount} 
+                            variant="outline" 
+                            onClick={() => setCashAmount(amount.toString())}
+                            className="h-12 rounded-xl border-2 border-primary/20 hover:bg-primary/5 hover:border-primary text-lg font-semibold"
+                            data-testid={`button-amount-${amount}`}
+                          >
+                            ${amount}
+                          </Button>
+                        ))}
+                      </div>
+
+                      <Button 
+                        onClick={() => setCashDonationStep("payment")}
+                        className="w-full h-16 rounded-2xl text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.01]"
+                        data-testid="button-donate-cash"
+                      >
+                        Donate Now
+                      </Button>
                     </div>
-                  ) : (
-                    <CashPaymentForm 
-                      amount={cashAmount}
-                      onBack={() => setCashDonationStep("initial")}
-                    />
-                  )}
+                  </div>
+
+                  <Dialog open={cashDonationStep === "payment"} onOpenChange={(open) => !open && setCashDonationStep("initial")}>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl">
+                      <DialogHeader className="sticky top-0 bg-white z-10 pb-4">
+                        <DialogTitle className="text-2xl font-bold">Payment Details</DialogTitle>
+                      </DialogHeader>
+                      <CashPaymentForm 
+                        amount={cashAmount}
+                        onBack={() => setCashDonationStep("initial")}
+                      />
+                    </DialogContent>
+                  </Dialog>
                 </TabsContent>
 
                 <TabsContent value="crypto" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -285,20 +296,7 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-primary/10 overflow-hidden">
-      {/* Header with close button */}
-      <div className="bg-slate-700 text-white px-6 py-4 flex items-center justify-between rounded-t-3xl">
-        <h2 className="text-lg font-bold">Payment Details</h2>
-        <button 
-          onClick={onBack}
-          className="p-1 hover:bg-slate-600 rounded-lg transition-colors"
-          data-testid="button-close-payment"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      <div className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
+    <div className="space-y-6">
         {/* Personal Information */}
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -525,14 +523,13 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
           </div>
         </div>
 
-        {/* Donate Button */}
-        <Button 
-          className="w-full h-12 rounded-lg text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-6"
-          data-testid="button-complete-donation"
-        >
-          Please Donate Now - ${amount || "0"}
-        </Button>
-      </div>
+      {/* Donate Button */}
+      <Button 
+        className="w-full h-12 rounded-lg text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-6"
+        data-testid="button-complete-donation"
+      >
+        Please Donate Now - ${amount || "0"}
+      </Button>
     </div>
   );
 }
