@@ -1,0 +1,118 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Roboto",
+      "role": "body"
+    },
+    {
+      "family": "Rubik",
+      "role": "body"
+    },
+    {
+      "family": "Ionicons",
+      "role": "display"
+    },
+    {
+      "family": "Themify",
+      "role": "display"
+    },
+    {
+      "family": "Platz",
+      "role": "display"
+    }
+  ],
+  "colors": {
+    "primary": "#193C43",
+    "accent": "#1A3E44",
+    "background": "#808080",
+    "textPrimary": "#808080",
+    "link": "#041606"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Roboto",
+      "heading": "Ionicons"
+    },
+    "fontStacks": {
+      "heading": [
+        "Rubik"
+      ],
+      "body": [
+        "Roboto"
+      ],
+      "paragraph": [
+        "Roboto"
+      ]
+    },
+    "fontSizes": {
+      "h1": "35.424px",
+      "h2": "35.424px",
+      "body": "16px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "5px"
+  },
+  "components": {
+    "input": {
+      "borderColor": "#CCCCCC",
+      "borderRadius": "5px"
+    },
+    "buttonPrimary": {
+      "background": "#1A3E44",
+      "textColor": "#FBFA55",
+      "borderColor": "#CCCCCC",
+      "borderRadius": "24px",
+      "shadow": "none"
+    },
+    "buttonSecondary": {
+      "background": "#193C43",
+      "textColor": "#ECF6F8",
+      "borderColor": "#193C43",
+      "borderRadius": "48px",
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "File saved at: attached_assets/logo.svg",
+    "favicon": "File saved at: attached_assets/favicon.jpg",
+    "ogImage": null
+  },
+  "__framework_hints": [
+    "Site Kit by Google 1.165.0"
+  ],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 9,
+    "reasoning": "Logo #9 is the only one that visually represents 'Know Your Stuff NZ' and is located in the header, linking to the homepage, making it the main brand logo.",
+    "confidence": 0.9
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 1,
+      "text": "Donate Now",
+      "reasoning": "Button #1 has a vibrant background color (#1A3E44) and action-oriented text ('Donate Now'), making it the primary call-to-action button."
+    },
+    "secondary": {
+      "index": 2,
+      "text": "Check your stuff",
+      "reasoning": "Button #2 has a neutral background color (#193C43) and is less prominent compared to the primary button, making it suitable as the secondary button."
+    },
+    "confidence": 0.95
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "Individuals interested in drug safety and harm reduction."
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": null
+  },
+  "confidence": {
+    "buttons": 0.95,
+    "colors": 0.9,
+    "overall": 0.925
+  }
+}
