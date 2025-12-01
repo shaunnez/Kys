@@ -162,7 +162,7 @@ export default function Donate() {
                   </div>
 
                   <Dialog open={cashDonationStep === "payment"} onOpenChange={(open) => !open && setCashDonationStep("initial")}>
-                    <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl">
+                    <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl bg-white">
                       <DialogHeader className="sticky top-0 bg-white z-10 pb-4">
                         <DialogTitle className="text-2xl font-bold">Payment Details</DialogTitle>
                       </DialogHeader>
