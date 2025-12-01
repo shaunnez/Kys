@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -25,7 +26,7 @@ import {
   Menu,
   Search,
   User,
-  Wallet,
+  ArrowLeft,
 } from "lucide-react";
 import logoUrl from "@assets/logo.svg";
 
@@ -235,7 +236,168 @@ export default function Donate() {
 
 function CryptoDonationWidget() {
   const [currency, setCurrency] = useState("BTC");
-  
+  const [showPersonalInfo, setShowPersonalInfo] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    address1: "",
+    address2: "",
+    country: "",
+    state: "",
+    city: "",
+    zip: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  if (showPersonalInfo) {
+    return (
+      <Card className="overflow-hidden border-0 shadow-lg rounded-3xl">
+        <CardHeader className="bg-white border-b pb-6 px-6 py-6">
+          <div className="flex items-center gap-4 mb-2">
+            <button 
+              onClick={() => setShowPersonalInfo(false)}
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-5 w-5 text-slate-700" />
+            </button>
+            <CardTitle className="text-2xl font-bold text-slate-900">Personal Info</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 bg-white space-y-5">
+          {/* Anonymous Checkbox */}
+          <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <Checkbox 
+              id="anonymous"
+              checked={isAnonymous}
+              onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
+              className="w-5 h-5"
+              data-testid="checkbox-anonymous"
+            />
+            <label 
+              htmlFor="anonymous" 
+              className="text-base font-medium text-slate-700 cursor-pointer flex-1"
+            >
+              Make donation anonymous
+            </label>
+          </div>
+
+          {!isAnonymous && (
+            <div className="space-y-4">
+              {/* First Name and Last Name */}
+              <div className="grid grid-cols-2 gap-3">
+                <Input 
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  placeholder="First name" 
+                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                  data-testid="input-firstName"
+                />
+                <Input 
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Last name" 
+                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                  data-testid="input-lastName"
+                />
+              </div>
+
+              {/* Email */}
+              <Input 
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Email" 
+                type="email"
+                className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                data-testid="input-email"
+              />
+
+              {/* Address 1 */}
+              <Input 
+                name="address1"
+                value={formData.address1}
+                onChange={handleInputChange}
+                placeholder="Address 1" 
+                className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                data-testid="input-address1"
+              />
+
+              {/* Address 2 */}
+              <Input 
+                name="address2"
+                value={formData.address2}
+                onChange={handleInputChange}
+                placeholder="Address 2" 
+                className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                data-testid="input-address2"
+              />
+
+              {/* Country and State */}
+              <div className="grid grid-cols-2 gap-3">
+                <Input 
+                  name="country"
+                  value={formData.country}
+                  onChange={handleInputChange}
+                  placeholder="Country" 
+                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                  data-testid="input-country"
+                />
+                <Input 
+                  name="state"
+                  value={formData.state}
+                  onChange={handleInputChange}
+                  placeholder="State/Provinc..." 
+                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                  data-testid="input-state"
+                />
+              </div>
+
+              {/* City and ZIP */}
+              <div className="grid grid-cols-2 gap-3">
+                <Input 
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  placeholder="City" 
+                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                  data-testid="input-city"
+                />
+                <Input 
+                  name="zip"
+                  value={formData.zip}
+                  onChange={handleInputChange}
+                  placeholder="ZIP/Postal Code" 
+                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
+                  data-testid="input-zip"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Next Button */}
+          <Button 
+            className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm"
+            data-testid="button-next"
+          >
+            Next
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="overflow-hidden border-0 shadow-lg rounded-3xl">
       <CardHeader className="bg-white border-b pb-6">
@@ -247,6 +409,7 @@ function CryptoDonationWidget() {
           <button 
             onClick={() => setCurrency("BTC")}
             className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border transition-all ${currency === "BTC" ? "border-[#F7931A] bg-[#F7931A]/5 ring-1 ring-[#F7931A]" : "border-slate-200 hover:bg-slate-50"}`}
+            data-testid="button-btc"
           >
             <div className="w-6 h-6 rounded-full bg-[#F7931A] text-white flex items-center justify-center text-xs font-bold">₿</div>
             <span className="font-semibold text-slate-700">BTC</span>
@@ -254,6 +417,7 @@ function CryptoDonationWidget() {
           <button 
             onClick={() => setCurrency("ETH")}
             className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border transition-all ${currency === "ETH" ? "border-[#627EEA] bg-[#627EEA]/5 ring-1 ring-[#627EEA]" : "border-slate-200 hover:bg-slate-50"}`}
+            data-testid="button-eth"
           >
             <div className="w-6 h-6 rounded-full bg-[#627EEA] text-white flex items-center justify-center text-xs font-bold">Ξ</div>
             <span className="font-semibold text-slate-700">ETH</span>
@@ -261,6 +425,7 @@ function CryptoDonationWidget() {
           <button 
             onClick={() => setCurrency("USDC")}
             className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border transition-all ${currency === "USDC" ? "border-[#2775CA] bg-[#2775CA]/5 ring-1 ring-[#2775CA]" : "border-slate-200 hover:bg-slate-50"}`}
+            data-testid="button-usdc"
           >
             <div className="w-6 h-6 rounded-full bg-[#2775CA] text-white flex items-center justify-center text-xs font-bold">$</div>
             <span className="font-semibold text-slate-700">USDC</span>
@@ -270,7 +435,7 @@ function CryptoDonationWidget() {
         {/* Dropdown Selection */}
         <div className="space-y-2">
            <Select defaultValue={currency} onValueChange={setCurrency}>
-            <SelectTrigger className="h-14 text-lg rounded-xl border-slate-200">
+            <SelectTrigger className="h-14 text-lg rounded-xl border-slate-200" data-testid="select-currency">
               <SelectValue placeholder="Select Currency" />
             </SelectTrigger>
             <SelectContent>
@@ -287,6 +452,7 @@ function CryptoDonationWidget() {
             className="h-14 text-lg rounded-xl border-slate-200" 
             placeholder="0.0001" 
             defaultValue="0.0001"
+            data-testid="input-amount"
           />
           <div className="text-slate-500 font-medium text-lg whitespace-nowrap">
             ≈ $8.64
@@ -294,7 +460,11 @@ function CryptoDonationWidget() {
         </div>
 
         {/* Donate Button */}
-        <Button className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm flex items-center justify-center gap-2">
+        <Button 
+          onClick={() => setShowPersonalInfo(true)}
+          className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm flex items-center justify-center gap-2"
+          data-testid="button-donate"
+        >
           Donate
           <Heart className="w-5 h-5 fill-black/20 stroke-black" />
         </Button>
