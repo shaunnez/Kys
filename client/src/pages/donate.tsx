@@ -129,8 +129,14 @@ export default function Donate() {
                           <Input 
                             type="number" 
                             placeholder="0" 
+                            min="0"
                             value={cashAmount}
-                            onChange={(e) => setCashAmount(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "" || parseFloat(val) >= 0) {
+                                setCashAmount(val);
+                              }
+                            }}
                             className="pl-10 h-16 text-2xl font-bold rounded-xl border-2 border-primary/20 focus-visible:ring-primary/30 bg-white"
                             data-testid="input-cash-amount"
                           />
@@ -153,7 +159,8 @@ export default function Donate() {
 
                       <Button 
                         onClick={() => setCashDonationStep("payment")}
-                        className="w-full h-16 rounded-2xl text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.01]"
+                        disabled={!cashAmount || parseFloat(cashAmount) <= 0}
+                        className="w-full h-16 rounded-2xl text-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
                         data-testid="button-donate-cash"
                       >
                         Donate Now
@@ -286,6 +293,7 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
     region: "Wellington",
     zip: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -293,6 +301,32 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
       ...prev,
       [name]: value
     }));
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.firstName.trim()) newErrors.firstName = "Required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Required";
+    if (!formData.email.trim()) newErrors.email = "Required";
+    if (!formData.email.includes("@")) newErrors.email = "Invalid email";
+    if (!formData.cardNumber.trim()) newErrors.cardNumber = "Required";
+    if (!formData.cvc.trim()) newErrors.cvc = "Required";
+    if (!formData.cardholderName.trim()) newErrors.cardholderName = "Required";
+    if (!formData.expiration.trim()) newErrors.expiration = "Required";
+    if (!formData.address1.trim()) newErrors.address1 = "Required";
+    if (!formData.city.trim()) newErrors.city = "Required";
+    if (!formData.zip.trim()) newErrors.zip = "Required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   return (
@@ -310,9 +344,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
                 value={formData.firstName}
                 onChange={handleChange}
                 placeholder="First Name" 
-                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.firstName ? "border-red-500" : "border-slate-300"}`}
                 data-testid="input-payment-firstName"
               />
+              {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -323,9 +358,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
                 value={formData.lastName}
                 onChange={handleChange}
                 placeholder="Last Name" 
-                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.lastName ? "border-red-500" : "border-slate-300"}`}
                 data-testid="input-payment-lastName"
               />
+              {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
             </div>
           </div>
 
@@ -340,9 +376,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
               value={formData.email}
               onChange={handleChange}
               placeholder="Email Address" 
-              className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+              className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.email ? "border-red-500" : "border-slate-300"}`}
               data-testid="input-payment-email"
             />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
         </div>
 
@@ -366,9 +403,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
                 value={formData.cardNumber}
                 onChange={handleChange}
                 placeholder="Card Number" 
-                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.cardNumber ? "border-red-500" : "border-slate-300"}`}
                 data-testid="input-card-number"
               />
+              {errors.cardNumber && <p className="text-red-500 text-xs mt-1">{errors.cardNumber}</p>}
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -381,9 +419,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
                 onChange={handleChange}
                 placeholder="CVC" 
                 maxLength={4}
-                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.cvc ? "border-red-500" : "border-slate-300"}`}
                 data-testid="input-cvc"
               />
+              {errors.cvc && <p className="text-red-500 text-xs mt-1">{errors.cvc}</p>}
             </div>
           </div>
 
@@ -398,9 +437,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
                 value={formData.cardholderName}
                 onChange={handleChange}
                 placeholder="Cardholder Name" 
-                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.cardholderName ? "border-red-500" : "border-slate-300"}`}
                 data-testid="input-cardholder-name"
               />
+              {errors.cardholderName && <p className="text-red-500 text-xs mt-1">{errors.cardholderName}</p>}
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -412,9 +452,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
                 value={formData.expiration}
                 onChange={handleChange}
                 placeholder="MM / YY" 
-                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.expiration ? "border-red-500" : "border-slate-300"}`}
                 data-testid="input-expiration"
               />
+              {errors.expiration && <p className="text-red-500 text-xs mt-1">{errors.expiration}</p>}
             </div>
           </div>
         </div>
@@ -453,9 +494,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
               value={formData.address1}
               onChange={handleChange}
               placeholder="Address line 1" 
-              className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+              className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.address1 ? "border-red-500" : "border-slate-300"}`}
               data-testid="input-address1-payment"
             />
+            {errors.address1 && <p className="text-red-500 text-xs mt-1">{errors.address1}</p>}
           </div>
 
           <div>
@@ -482,9 +524,10 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
               value={formData.city}
               onChange={handleChange}
               placeholder="City" 
-              className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+              className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.city ? "border-red-500" : "border-slate-300"}`}
               data-testid="input-city-payment"
             />
+            {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -516,16 +559,22 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
                 value={formData.zip}
                 onChange={handleChange}
                 placeholder="Zip / Postal Code" 
-                className="h-10 rounded-lg border-slate-300 placeholder-slate-300 text-slate-600"
+                className={`h-10 rounded-lg border-2 placeholder-slate-300 text-slate-600 ${errors.zip ? "border-red-500" : "border-slate-300"}`}
                 data-testid="input-zip-payment"
               />
+              {errors.zip && <p className="text-red-500 text-xs mt-1">{errors.zip}</p>}
             </div>
           </div>
         </div>
 
       {/* Donate Button */}
       <Button 
-        className="w-full h-12 rounded-lg text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-6"
+        onClick={() => {
+          if (validateForm()) {
+            console.log("Form submitted:", formData);
+          }
+        }}
+        className="w-full h-12 rounded-lg text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-6 disabled:opacity-50"
         data-testid="button-complete-donation"
       >
         Please Donate Now - ${amount || "0"}
@@ -538,6 +587,8 @@ function CryptoDonationWidget() {
   const [currency, setCurrency] = useState("BTC");
   const [step, setStep] = useState("donation"); // donation, personalInfo, taxReceipt, walletAddress
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [cryptoAmount, setCryptoAmount] = useState("");
+  const [cryptoErrors, setCryptoErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -550,6 +601,25 @@ function CryptoDonationWidget() {
     zip: "",
   });
   const [taxEmail, setTaxEmail] = useState("");
+
+  const validateCryptoPersonalInfo = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!isAnonymous) {
+      if (!formData.firstName.trim()) newErrors.firstName = "Required";
+      if (!formData.lastName.trim()) newErrors.lastName = "Required";
+      if (!formData.email.trim()) newErrors.email = "Required";
+      if (!formData.email.includes("@")) newErrors.email = "Invalid email";
+      if (!formData.address1.trim()) newErrors.address1 = "Required";
+      if (!formData.country.trim()) newErrors.country = "Required";
+      if (!formData.state.trim()) newErrors.state = "Required";
+      if (!formData.city.trim()) newErrors.city = "Required";
+      if (!formData.zip.trim()) newErrors.zip = "Required";
+    }
+
+    setCryptoErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -600,44 +670,56 @@ function CryptoDonationWidget() {
             <div className="space-y-4">
               {/* First Name and Last Name */}
               <div className="grid grid-cols-2 gap-3">
-                <Input 
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  placeholder="First name" 
-                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
-                  data-testid="input-firstName"
-                />
-                <Input 
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  placeholder="Last name" 
-                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
-                  data-testid="input-lastName"
-                />
+                <div>
+                  <Input 
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    placeholder="First name" 
+                    className={`h-12 rounded-xl border-2 text-slate-600 placeholder-slate-400 ${cryptoErrors.firstName ? "border-red-500" : "border-slate-200"}`}
+                    data-testid="input-firstName"
+                  />
+                  {cryptoErrors.firstName && <p className="text-red-500 text-xs mt-1">{cryptoErrors.firstName}</p>}
+                </div>
+                <div>
+                  <Input 
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    placeholder="Last name" 
+                    className={`h-12 rounded-xl border-2 text-slate-600 placeholder-slate-400 ${cryptoErrors.lastName ? "border-red-500" : "border-slate-200"}`}
+                    data-testid="input-lastName"
+                  />
+                  {cryptoErrors.lastName && <p className="text-red-500 text-xs mt-1">{cryptoErrors.lastName}</p>}
+                </div>
               </div>
 
               {/* Email */}
-              <Input 
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Email" 
-                type="email"
-                className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
-                data-testid="input-email"
-              />
+              <div>
+                <Input 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Email" 
+                  type="email"
+                  className={`h-12 rounded-xl border-2 text-slate-600 placeholder-slate-400 ${cryptoErrors.email ? "border-red-500" : "border-slate-200"}`}
+                  data-testid="input-email"
+                />
+                {cryptoErrors.email && <p className="text-red-500 text-xs mt-1">{cryptoErrors.email}</p>}
+              </div>
 
               {/* Address 1 */}
-              <Input 
-                name="address1"
-                value={formData.address1}
-                onChange={handleInputChange}
-                placeholder="Address 1" 
-                className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
-                data-testid="input-address1"
-              />
+              <div>
+                <Input 
+                  name="address1"
+                  value={formData.address1}
+                  onChange={handleInputChange}
+                  placeholder="Address 1" 
+                  className={`h-12 rounded-xl border-2 text-slate-600 placeholder-slate-400 ${cryptoErrors.address1 ? "border-red-500" : "border-slate-200"}`}
+                  data-testid="input-address1"
+                />
+                {cryptoErrors.address1 && <p className="text-red-500 text-xs mt-1">{cryptoErrors.address1}</p>}
+              </div>
 
               {/* Address 2 */}
               <Input 
@@ -651,49 +733,65 @@ function CryptoDonationWidget() {
 
               {/* Country and State */}
               <div className="grid grid-cols-2 gap-3">
-                <Input 
-                  name="country"
-                  value={formData.country}
-                  onChange={handleInputChange}
-                  placeholder="Country" 
-                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
-                  data-testid="input-country"
-                />
-                <Input 
-                  name="state"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  placeholder="State/Provinc..." 
-                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
-                  data-testid="input-state"
-                />
+                <div>
+                  <Input 
+                    name="country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    placeholder="Country" 
+                    className={`h-12 rounded-xl border-2 text-slate-600 placeholder-slate-400 ${cryptoErrors.country ? "border-red-500" : "border-slate-200"}`}
+                    data-testid="input-country"
+                  />
+                  {cryptoErrors.country && <p className="text-red-500 text-xs mt-1">{cryptoErrors.country}</p>}
+                </div>
+                <div>
+                  <Input 
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    placeholder="State/Provinc..." 
+                    className={`h-12 rounded-xl border-2 text-slate-600 placeholder-slate-400 ${cryptoErrors.state ? "border-red-500" : "border-slate-200"}`}
+                    data-testid="input-state"
+                  />
+                  {cryptoErrors.state && <p className="text-red-500 text-xs mt-1">{cryptoErrors.state}</p>}
+                </div>
               </div>
 
               {/* City and ZIP */}
               <div className="grid grid-cols-2 gap-3">
-                <Input 
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  placeholder="City" 
-                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
-                  data-testid="input-city"
-                />
-                <Input 
-                  name="zip"
-                  value={formData.zip}
-                  onChange={handleInputChange}
-                  placeholder="ZIP/Postal Code" 
-                  className="h-12 rounded-xl border-slate-200 text-slate-400 placeholder-slate-400"
-                  data-testid="input-zip"
-                />
+                <div>
+                  <Input 
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    placeholder="City" 
+                    className={`h-12 rounded-xl border-2 text-slate-600 placeholder-slate-400 ${cryptoErrors.city ? "border-red-500" : "border-slate-200"}`}
+                    data-testid="input-city"
+                  />
+                  {cryptoErrors.city && <p className="text-red-500 text-xs mt-1">{cryptoErrors.city}</p>}
+                </div>
+                <div>
+                  <Input 
+                    name="zip"
+                    value={formData.zip}
+                    onChange={handleInputChange}
+                    placeholder="ZIP/Postal Code" 
+                    className={`h-12 rounded-xl border-2 text-slate-600 placeholder-slate-400 ${cryptoErrors.zip ? "border-red-500" : "border-slate-200"}`}
+                    data-testid="input-zip"
+                  />
+                  {cryptoErrors.zip && <p className="text-red-500 text-xs mt-1">{cryptoErrors.zip}</p>}
+                </div>
               </div>
             </div>
           )}
 
           {/* Next Button */}
           <Button 
-            onClick={() => setStep("taxReceipt")}
+            onClick={() => {
+              if (validateCryptoPersonalInfo()) {
+                setStep("taxReceipt");
+              }
+            }}
             className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm"
             data-testid="button-next"
           >
@@ -894,7 +992,15 @@ function CryptoDonationWidget() {
           <Input 
             className="h-14 text-lg rounded-xl border-slate-200" 
             placeholder="0.0001" 
-            defaultValue="0.0001"
+            value={cryptoAmount}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "" || parseFloat(val) > 0) {
+                setCryptoAmount(val);
+              }
+            }}
+            min="0"
+            step="0.0001"
             data-testid="input-amount"
           />
           <div className="text-slate-500 font-medium text-lg whitespace-nowrap">
@@ -905,7 +1011,8 @@ function CryptoDonationWidget() {
         {/* Donate Button */}
         <Button 
           onClick={() => setStep("personalInfo")}
-          className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm flex items-center justify-center gap-2"
+          disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
+          className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           data-testid="button-donate"
         >
           Donate
