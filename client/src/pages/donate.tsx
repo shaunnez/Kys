@@ -236,7 +236,7 @@ export default function Donate() {
 
 function CryptoDonationWidget() {
   const [currency, setCurrency] = useState("BTC");
-  const [showPersonalInfo, setShowPersonalInfo] = useState(false);
+  const [step, setStep] = useState("donation"); // donation, personalInfo, taxReceipt, walletAddress
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -249,6 +249,7 @@ function CryptoDonationWidget() {
     city: "",
     zip: "",
   });
+  const [taxEmail, setTaxEmail] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -258,13 +259,17 @@ function CryptoDonationWidget() {
     }));
   };
 
-  if (showPersonalInfo) {
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText("bc1qllutxxxkeyeh0d...fj3m9twh35vydd67e0");
+  };
+
+  if (step === "personalInfo") {
     return (
       <Card className="overflow-hidden border-0 shadow-lg rounded-3xl">
         <CardHeader className="bg-white border-b pb-6 px-6 py-6">
           <div className="flex items-center gap-4 mb-2">
             <button 
-              onClick={() => setShowPersonalInfo(false)}
+              onClick={() => setStep("donation")}
               className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
               data-testid="button-back"
             >
@@ -388,10 +393,148 @@ function CryptoDonationWidget() {
 
           {/* Next Button */}
           <Button 
+            onClick={() => setStep("taxReceipt")}
             className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm"
             data-testid="button-next"
           >
             Next
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (step === "taxReceipt") {
+    return (
+      <Card className="overflow-hidden border-0 shadow-lg rounded-3xl">
+        <CardHeader className="bg-white border-b pb-6 px-6 py-6">
+          <div className="flex items-center gap-4 mb-2">
+            <button 
+              onClick={() => setStep("personalInfo")}
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              data-testid="button-back-tax"
+            >
+              <ArrowLeft className="h-5 w-5 text-slate-700" />
+            </button>
+            <CardTitle className="text-2xl font-bold text-slate-900">Want A Tax Receipt?</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 bg-white space-y-6">
+          <p className="text-base text-slate-700 leading-relaxed">
+            If you would like to receive a tax receipt while remaining anonymous, enter your email below. This email will only be used for the purpose of issuing your tax receipt.
+          </p>
+
+          <Input 
+            value={taxEmail}
+            onChange={(e) => setTaxEmail(e.target.value)}
+            placeholder="Enter email for tax receipt" 
+            type="email"
+            className="h-12 rounded-xl border-slate-200 text-slate-600 placeholder-slate-400"
+            data-testid="input-tax-email"
+          />
+
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => setStep("walletAddress")}
+              variant="outline"
+              className="flex-1 h-12 rounded-xl text-base font-bold border-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+              data-testid="button-skip"
+            >
+              Skip
+            </Button>
+            <Button 
+              onClick={() => setStep("walletAddress")}
+              className="flex-1 h-12 rounded-xl text-base font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm"
+              data-testid="button-get-receipt"
+            >
+              Get receipt
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (step === "walletAddress") {
+    const btcAmount = "0.00010000000000000000002 BTC";
+    const walletAddress = "bc1qllutxxxkeyeh0d...fj3m9twh35vydd67e0";
+    
+    return (
+      <Card className="overflow-hidden border-0 shadow-lg rounded-3xl">
+        <CardHeader className="bg-white border-b pb-6 px-6 py-6">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setStep("taxReceipt")}
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              data-testid="button-back-wallet"
+            >
+              <ArrowLeft className="h-5 w-5 text-slate-700" />
+            </button>
+            <div>
+              <CardTitle className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                {btcAmount}
+                <Info className="h-4 w-4 text-slate-500" />
+              </CardTitle>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 bg-white space-y-6">
+          <p className="text-base text-slate-700 text-center">
+            Use the address below to make a donation from your wallet.
+          </p>
+
+          {/* QR Code Placeholder */}
+          <div className="flex justify-center">
+            <div className="w-48 h-48 bg-slate-100 rounded-2xl border-2 border-slate-200 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-4xl mb-2">📱</div>
+                <span className="text-sm text-slate-500">QR Code</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Wallet Address */}
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-2">
+              <input 
+                type="text" 
+                value={walletAddress}
+                readOnly
+                className="flex-1 bg-transparent font-mono text-sm text-slate-700 outline-none"
+                data-testid="input-wallet-address"
+              />
+              <button 
+                onClick={handleCopyAddress}
+                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                data-testid="button-copy"
+              >
+                <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Warning Text */}
+          <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+            <p className="text-sm text-orange-700 leading-relaxed">
+              <span className="font-semibold">Send only BTC to this address using the Bitcoin blockchain.</span> Sending other unsupported tokens or NFTs to this address may result in the loss of your donation. The address will expire after 180 days of unused.
+            </p>
+          </div>
+
+          {/* Start Over Button */}
+          <Button 
+            onClick={() => {
+              setStep("donation");
+              setCurrency("BTC");
+              setFormData({ firstName: "", lastName: "", email: "", address1: "", address2: "", country: "", state: "", city: "", zip: "" });
+              setTaxEmail("");
+              setIsAnonymous(false);
+            }}
+            className="w-full h-12 rounded-xl text-base font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm"
+            data-testid="button-start-over"
+          >
+            Start Over
           </Button>
         </CardContent>
       </Card>
@@ -461,7 +604,7 @@ function CryptoDonationWidget() {
 
         {/* Donate Button */}
         <Button 
-          onClick={() => setShowPersonalInfo(true)}
+          onClick={() => setStep("personalInfo")}
           className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm flex items-center justify-center gap-2"
           data-testid="button-donate"
         >
