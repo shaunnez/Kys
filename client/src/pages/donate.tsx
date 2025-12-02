@@ -592,12 +592,10 @@ function CryptoDonationWidget() {
     USDC: 1.65,
   };
 
-  const nzdTarget = 100; // Target donation in NZD
-  
   const [currency, setCurrency] = useState("BTC");
   const [step, setStep] = useState("donation"); // donation, personalInfo, taxReceipt, walletAddress
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [cryptoAmount, setCryptoAmount] = useState(() => (nzdTarget / exchangeRates["BTC"]).toFixed(8));
+  const [nzdAmount, setNzdAmount] = useState("100");
   const [cryptoErrors, setCryptoErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     firstName: "",
@@ -614,9 +612,9 @@ function CryptoDonationWidget() {
 
   const handleCurrencyChange = (newCurrency: string) => {
     setCurrency(newCurrency);
-    const newAmount = (nzdTarget / exchangeRates[newCurrency]).toFixed(8);
-    setCryptoAmount(newAmount);
   };
+
+  const cryptoAmount = nzdAmount ? (parseFloat(nzdAmount) / exchangeRates[currency]).toFixed(8) : "0";
 
   const validateCryptoPersonalInfo = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -1005,22 +1003,26 @@ function CryptoDonationWidget() {
 
         {/* Amount Input */}
         <div className="flex items-center gap-4">
-          <Input 
-            className="h-14 text-lg rounded-xl border-slate-200" 
-            placeholder="0.0001" 
-            value={cryptoAmount}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === "" || parseFloat(val) > 0) {
-                setCryptoAmount(val);
-              }
-            }}
-            min="0"
-            step="0.0001"
-            data-testid="input-amount"
-          />
-          <div className="text-slate-500 font-medium text-lg whitespace-nowrap">
-            ≈ $100 NZD
+          <div className="relative flex-1">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-600">$</span>
+            <Input 
+              className="h-14 text-lg rounded-xl border-slate-200 pl-8" 
+              placeholder="100" 
+              value={nzdAmount}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || parseFloat(val) >= 0) {
+                  setNzdAmount(val);
+                }
+              }}
+              min="0"
+              step="1"
+              data-testid="input-nzd-amount"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">NZD</span>
+          </div>
+          <div className="text-slate-600 font-semibold text-lg whitespace-nowrap">
+            = {cryptoAmount} {currency}
           </div>
         </div>
 
