@@ -584,10 +584,20 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
 }
 
 function CryptoDonationWidget() {
+  // Exchange rates: 1 unit of crypto = X NZD
+  const exchangeRates: Record<string, number> = {
+    BTC: 130000,
+    ETH: 4500,
+    USDT: 1.65,
+    USDC: 1.65,
+  };
+
+  const nzdTarget = 100; // Target donation in NZD
+  
   const [currency, setCurrency] = useState("BTC");
   const [step, setStep] = useState("donation"); // donation, personalInfo, taxReceipt, walletAddress
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [cryptoAmount, setCryptoAmount] = useState("");
+  const [cryptoAmount, setCryptoAmount] = useState(() => (nzdTarget / exchangeRates["BTC"]).toFixed(8));
   const [cryptoErrors, setCryptoErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     firstName: "",
@@ -601,6 +611,12 @@ function CryptoDonationWidget() {
     zip: "",
   });
   const [taxEmail, setTaxEmail] = useState("");
+
+  const handleCurrencyChange = (newCurrency: string) => {
+    setCurrency(newCurrency);
+    const newAmount = (nzdTarget / exchangeRates[newCurrency]).toFixed(8);
+    setCryptoAmount(newAmount);
+  };
 
   const validateCryptoPersonalInfo = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -948,7 +964,7 @@ function CryptoDonationWidget() {
         {/* Coin Selection */}
         <div className="grid grid-cols-3 gap-3">
           <button 
-            onClick={() => setCurrency("BTC")}
+            onClick={() => handleCurrencyChange("BTC")}
             className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border transition-all ${currency === "BTC" ? "border-[#F7931A] bg-[#F7931A]/5 ring-1 ring-[#F7931A]" : "border-slate-200 hover:bg-slate-50"}`}
             data-testid="button-btc"
           >
@@ -956,7 +972,7 @@ function CryptoDonationWidget() {
             <span className="font-semibold text-slate-700">BTC</span>
           </button>
           <button 
-            onClick={() => setCurrency("ETH")}
+            onClick={() => handleCurrencyChange("ETH")}
             className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border transition-all ${currency === "ETH" ? "border-[#627EEA] bg-[#627EEA]/5 ring-1 ring-[#627EEA]" : "border-slate-200 hover:bg-slate-50"}`}
             data-testid="button-eth"
           >
@@ -964,7 +980,7 @@ function CryptoDonationWidget() {
             <span className="font-semibold text-slate-700">ETH</span>
           </button>
           <button 
-            onClick={() => setCurrency("USDC")}
+            onClick={() => handleCurrencyChange("USDC")}
             className={`flex items-center justify-center gap-2 py-3 px-2 rounded-xl border transition-all ${currency === "USDC" ? "border-[#2775CA] bg-[#2775CA]/5 ring-1 ring-[#2775CA]" : "border-slate-200 hover:bg-slate-50"}`}
             data-testid="button-usdc"
           >
@@ -975,7 +991,7 @@ function CryptoDonationWidget() {
 
         {/* Dropdown Selection */}
         <div className="space-y-2">
-           <Select defaultValue={currency} onValueChange={setCurrency}>
+           <Select value={currency} onValueChange={handleCurrencyChange}>
             <SelectTrigger className="h-14 text-lg rounded-xl border-slate-200" data-testid="select-currency">
               <SelectValue placeholder="Select Currency" />
             </SelectTrigger>
@@ -1004,15 +1020,14 @@ function CryptoDonationWidget() {
             data-testid="input-amount"
           />
           <div className="text-slate-500 font-medium text-lg whitespace-nowrap">
-            ≈ $8.64
+            ≈ $100 NZD
           </div>
         </div>
 
         {/* Donate Button */}
         <Button 
           onClick={() => setStep("personalInfo")}
-          disabled={!cryptoAmount || parseFloat(cryptoAmount) <= 0}
-          className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-14 rounded-xl text-lg font-bold bg-[#FCD535] text-black hover:bg-[#FCD535]/90 shadow-sm flex items-center justify-center gap-2"
           data-testid="button-donate"
         >
           Donate
