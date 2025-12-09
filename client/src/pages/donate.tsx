@@ -569,9 +569,26 @@ function CashPaymentForm({ amount, onBack }: { amount: string; onBack: () => voi
 
       {/* Donate Button */}
       <Button 
-        onClick={() => {
+        onClick={async () => {
           if (validateForm()) {
-            console.log("Form submitted:", formData);
+            try {
+              const response = await fetch("/api/donations/cash", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  amount,
+                  ...formData
+                })
+              });
+              if (response.ok) {
+                const donation = await response.json();
+                console.log("Donation created:", donation);
+                // Reset form
+                onBack();
+              }
+            } catch (error) {
+              console.error("Error submitting donation:", error);
+            }
           }
         }}
         className="w-full h-12 rounded-lg text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 mt-6 disabled:opacity-50"
@@ -936,9 +953,32 @@ function CryptoDonationWidget() {
 
           {/* Start Over Button */}
           <Button 
-            onClick={() => {
+            onClick={async () => {
+              // Submit crypto donation first
+              try {
+                const response = await fetch("/api/donations/crypto", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    amount: cryptoAmount,
+                    currency: currency,
+                    isAnonymous: isAnonymous,
+                    ...formData,
+                    taxReceiptEmail: taxEmail,
+                    walletAddress: "bc1qllutxxxkeyeh0d...fj3m9twh35vydd67e0",
+                  })
+                });
+                if (response.ok) {
+                  console.log("Crypto donation created");
+                }
+              } catch (error) {
+                console.error("Error submitting crypto donation:", error);
+              }
+              
+              // Reset form
               setStep("donation");
               setCurrency("BTC");
+              setNzdAmount("100");
               setFormData({ firstName: "", lastName: "", email: "", address1: "", address2: "", country: "", state: "", city: "", zip: "" });
               setTaxEmail("");
               setIsAnonymous(false);
