@@ -809,16 +809,39 @@ get_header();
         position: fixed;
         top: 1.5rem;
         right: 1.5rem;
-        padding: 1rem 1.5rem;
+        padding: 1.25rem 1.75rem;
         border-radius: 12px;
-        font-size: 0.95rem;
+        font-size: 18px;
         font-weight: 500;
         z-index: 10000;
         opacity: 0;
         transform: translateX(100%);
         transition: all 0.3s ease;
-        max-width: 350px;
+        max-width: 400px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Button loading state */
+    .donate-btn.loading {
+        opacity: 0.7;
+        pointer-events: none;
+        position: relative;
+    }
+
+    .donate-btn.loading::after {
+        content: '';
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border: 2px solid transparent;
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-left: 8px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     .crypto-toast.show {
@@ -1595,16 +1618,32 @@ document.addEventListener( 'DOMContentLoaded', function() {
     // Step 3: Skip / Get Receipt - now submits donation
     const btnSkip = document.getElementById( 'btn-skip-tax' );
     const btnGetReceipt = document.getElementById( 'btn-get-receipt' );
+    
+    function setButtonsLoading( loading ) {
+        if ( btnSkip ) {
+            btnSkip.classList.toggle( 'loading', loading );
+            btnSkip.disabled = loading;
+        }
+        if ( btnGetReceipt ) {
+            btnGetReceipt.classList.toggle( 'loading', loading );
+            btnGetReceipt.disabled = loading;
+        }
+    }
+    
     if ( btnSkip ) {
         btnSkip.addEventListener( 'click', async function() {
+            setButtonsLoading( true );
             await submitDonation();
+            setButtonsLoading( false );
             showStep( 4 );
         } );
     }
     if ( btnGetReceipt ) {
         btnGetReceipt.addEventListener( 'click', async function() {
             taxEmail = document.getElementById( 'tax-email' )?.value || '';
+            setButtonsLoading( true );
             await submitDonation();
+            setButtonsLoading( false );
             showStep( 4 );
         } );
     }
