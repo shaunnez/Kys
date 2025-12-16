@@ -66,6 +66,44 @@ get_header();
                 </div>
 
                 <!-- Crypto Donation Tab -->
+                <?php
+                // Get crypto wallets from ACF
+                $crypto_wallets = array();
+                $wallet_data = array();
+                if ( have_rows( 'crypto_wallets' ) ) {
+                    while ( have_rows( 'crypto_wallets' ) ) {
+                        the_row();
+                        $crypto_name = get_sub_field( 'crypto_name' );
+                        $wallet_address = get_sub_field( 'wallet_address' );
+                        if ( $crypto_name && $wallet_address ) {
+                            $crypto_wallets[] = $crypto_name;
+                            $wallet_data[ $crypto_name ] = $wallet_address;
+                        }
+                    }
+                }
+                // Fallback if no ACF data
+                if ( empty( $crypto_wallets ) ) {
+                    $crypto_wallets = array( 'BTC', 'ETH', 'USDC', 'USDT' );
+                    $wallet_data = array(
+                        'BTC' => 'bc1qllutxxxkeyeh0dfj3m9twh35vydd67e0',
+                        'ETH' => '0x1234567890abcdef1234567890abcdef12345678',
+                        'USDC' => '0x1234567890abcdef1234567890abcdef12345678',
+                        'USDT' => '0x1234567890abcdef1234567890abcdef12345678'
+                    );
+                }
+                $coin_icons = array(
+                    'BTC' => '₿',
+                    'ETH' => 'Ξ',
+                    'USDC' => '$',
+                    'USDT' => '₮'
+                );
+                $coin_names = array(
+                    'BTC' => 'Bitcoin (BTC)',
+                    'ETH' => 'Ethereum (ETH)',
+                    'USDC' => 'USD Coin (USDC)',
+                    'USDT' => 'Tether (USDT)'
+                );
+                ?>
                 <div 
                     id="tab-panel-crypto"
                     class="tab-panel" 
@@ -73,6 +111,11 @@ get_header();
                     aria-labelledby="tab-crypto"
                     data-testid="panel-crypto-form"
                 >
+                    <!-- Pass wallet data to JavaScript -->
+                    <script type="application/json" id="crypto-wallet-data">
+                        <?php echo json_encode( $wallet_data ); ?>
+                    </script>
+
                     <div class="crypto-widget" id="crypto-widget">
                         <!-- Step 1: Donation Amount -->
                         <div class="crypto-step" id="step-donation" data-step="1">
@@ -81,27 +124,28 @@ get_header();
                                 
                                 <!-- Coin Selection Buttons -->
                                 <div class="coin-buttons">
-                                    <button type="button" class="coin-button active" data-currency="BTC" data-testid="button-btc">
-                                        <span class="coin-icon btc">₿</span>
-                                        <span>BTC</span>
-                                    </button>
-                                    <button type="button" class="coin-button" data-currency="ETH" data-testid="button-eth">
-                                        <span class="coin-icon eth">Ξ</span>
-                                        <span>ETH</span>
-                                    </button>
-                                    <button type="button" class="coin-button" data-currency="USDC" data-testid="button-usdc">
-                                        <span class="coin-icon usdc">$</span>
-                                        <span>USDC</span>
-                                    </button>
+                                    <?php 
+                                    $first = true;
+                                    foreach ( $crypto_wallets as $coin ) : 
+                                        $icon = isset( $coin_icons[ $coin ] ) ? $coin_icons[ $coin ] : '$';
+                                        $active_class = $first ? 'active' : '';
+                                        $first = false;
+                                    ?>
+                                        <button type="button" class="coin-button <?php echo $active_class; ?>" data-currency="<?php echo esc_attr( $coin ); ?>" data-testid="button-<?php echo strtolower( $coin ); ?>">
+                                            <span class="coin-icon <?php echo strtolower( $coin ); ?>"><?php echo esc_html( $icon ); ?></span>
+                                            <span><?php echo esc_html( $coin ); ?></span>
+                                        </button>
+                                    <?php endforeach; ?>
                                 </div>
 
                                 <!-- Currency Dropdown -->
                                 <div class="form-field">
                                     <select id="crypto-currency" class="crypto-select" data-testid="select-currency">
-                                        <option value="BTC">Bitcoin (BTC)</option>
-                                        <option value="ETH">Ethereum (ETH)</option>
-                                        <option value="USDC">USD Coin (USDC)</option>
-                                        <option value="USDT">Tether (USDT)</option>
+                                        <?php foreach ( $crypto_wallets as $coin ) : 
+                                            $name = isset( $coin_names[ $coin ] ) ? $coin_names[ $coin ] : $coin;
+                                        ?>
+                                            <option value="<?php echo esc_attr( $coin ); ?>"><?php echo esc_html( $name ); ?></option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
 
@@ -114,7 +158,7 @@ get_header();
                                             id="nzd-amount" 
                                             class="amount-input"
                                             value="100"
-                                            min="0"
+                                            min="1"
                                             step="1"
                                             placeholder="100"
                                             data-testid="input-nzd-amount"
@@ -125,6 +169,9 @@ get_header();
                                         = <span id="crypto-conversion">0.00076923</span> <span id="crypto-currency-label">BTC</span>
                                     </div>
                                 </div>
+
+                                <!-- Amount Error -->
+                                <div class="amount-error" id="amount-error"></div>
 
                                 <!-- Donate Button -->
                                 <button 
@@ -650,12 +697,13 @@ get_header();
         display: flex;
         align-items: center;
         gap: 1rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .amount-input-wrapper {
         position: relative;
-        flex: 1;
+        width: 250px;
+        flex-shrink: 0;
     }
 
     .currency-prefix {
@@ -674,6 +722,17 @@ get_header();
         border-radius: 12px;
         font-size: 1.125rem;
         font-weight: 600;
+        -moz-appearance: textfield;
+    }
+
+    .amount-input::-webkit-outer-spin-button,
+    .amount-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .amount-input.error {
+        border-color: #ef4444;
     }
 
     .currency-suffix {
@@ -690,6 +749,14 @@ get_header();
         font-weight: 600;
         color: #666;
         white-space: nowrap;
+        min-width: 150px;
+    }
+
+    .amount-error {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        min-height: 1.25rem;
     }
 
     /* Buttons */
@@ -988,6 +1055,9 @@ get_header();
     }
 </style>
 
+<!-- QRCode.js library for generating QR codes -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <script>
 document.addEventListener( 'DOMContentLoaded', function() {
     // Exchange rates: 1 unit of crypto = X NZD (matching React version)
@@ -1004,6 +1074,17 @@ document.addEventListener( 'DOMContentLoaded', function() {
         USDT: 'Ethereum',
         USDC: 'Ethereum'
     };
+
+    // Load wallet data from PHP
+    let walletData = {};
+    try {
+        const walletDataEl = document.getElementById( 'crypto-wallet-data' );
+        if ( walletDataEl ) {
+            walletData = JSON.parse( walletDataEl.textContent );
+        }
+    } catch ( e ) {
+        console.error( 'Error parsing wallet data:', e );
+    }
 
     // State management (matching React version)
     let currentStep = 1;
@@ -1227,9 +1308,29 @@ document.addEventListener( 'DOMContentLoaded', function() {
             const finalAmountEl = document.getElementById( 'final-amount' );
             const warningCurrency = document.getElementById( 'warning-currency' );
             const warningBlockchain = document.getElementById( 'warning-blockchain' );
+            const walletInput = document.getElementById( 'wallet-address' );
+            const qrContainer = document.getElementById( 'qr-code' );
+
             if ( finalAmountEl ) finalAmountEl.textContent = cryptoAmount + ' ' + selectedCurrency;
             if ( warningCurrency ) warningCurrency.textContent = selectedCurrency;
             if ( warningBlockchain ) warningBlockchain.textContent = blockchainNames[ selectedCurrency ];
+
+            // Get wallet address for selected currency
+            const walletAddress = walletData[ selectedCurrency ] || '';
+            if ( walletInput ) walletInput.value = walletAddress;
+
+            // Generate QR code
+            if ( qrContainer && walletAddress && typeof QRCode !== 'undefined' ) {
+                qrContainer.innerHTML = '';
+                new QRCode( qrContainer, {
+                    text: walletAddress,
+                    width: 150,
+                    height: 150,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                } );
+            }
         }
     }
 
@@ -1270,11 +1371,26 @@ document.addEventListener( 'DOMContentLoaded', function() {
         } );
     } );
 
+    // Amount validation
+    function validateAmount() {
+        const amountError = document.getElementById( 'amount-error' );
+        if ( nzdAmount <= 0 ) {
+            if ( nzdInput ) nzdInput.classList.add( 'error' );
+            if ( amountError ) amountError.textContent = 'Amount must be greater than 0';
+            return false;
+        }
+        if ( nzdInput ) nzdInput.classList.remove( 'error' );
+        if ( amountError ) amountError.textContent = '';
+        return true;
+    }
+
     // Step 1: Donate button
     const btnDonate = document.getElementById( 'btn-donate-crypto' );
     if ( btnDonate ) {
         btnDonate.addEventListener( 'click', function() {
-            showStep( 2 );
+            if ( validateAmount() ) {
+                showStep( 2 );
+            }
         } );
     }
 
