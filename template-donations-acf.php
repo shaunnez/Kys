@@ -1,6 +1,6 @@
 <?php
 /**
- * Template: Donations with Tabs and ACF Accordion
+ * Template Name: Donations with Tabs and ACF Accordion
  * 
  * This template displays donation forms (Cash via GiveWP, Crypto via multi-step form)
  * alongside a configurable ACF accordion with donation information.
@@ -460,9 +460,9 @@ get_header();
     }
 
     .donations-description {
-        font-size: 1rem;
+        font-size: 18px;
         color: #555;
-        line-height: 1.6;
+        line-height: 1.6;c
         max-width: 600px;
         margin: 0;
     }
@@ -471,7 +471,7 @@ get_header();
         max-width: 1200px;
         margin: 0 auto;
         display: grid;
-        grid-template-columns: 1fr 380px;
+        grid-template-columns: 1fr 50%;
         gap: 2rem;
     }
 
@@ -491,7 +491,7 @@ get_header();
         background: transparent;
         border: none;
         padding: 0.75rem 1.5rem;
-        font-size: 1rem;
+        font-size: 18px;
         font-weight: 600;
         color: #666;
         cursor: pointer;
@@ -573,7 +573,7 @@ get_header();
     .back-button {
         background: none;
         border: none;
-        font-size: 1.25rem;
+        font-size: 18px;
         cursor: pointer;
         padding: 0.5rem;
         border-radius: 8px;
@@ -641,6 +641,7 @@ get_header();
     .coin-icon.btc { background: #F7931A; }
     .coin-icon.eth { background: #627EEA; }
     .coin-icon.usdc { background: #2775CA; }
+    .coin-icon.usdt { background: #84ea62; }
 
     /* Form Fields */
     .form-field {
@@ -654,7 +655,7 @@ get_header();
         padding: 0.875rem 1rem;
         border: 2px solid #e0e0e0;
         border-radius: 12px;
-        font-size: 1rem;
+        font-size: 18px;
         transition: border-color 0.2s;
     }
 
@@ -687,7 +688,7 @@ get_header();
         padding: 0.875rem 1rem;
         border: 2px solid #e0e0e0;
         border-radius: 12px;
-        font-size: 1rem;
+        font-size: 18px;
         background: #fff;
         cursor: pointer;
     }
@@ -720,7 +721,7 @@ get_header();
         padding: 0.875rem 3.5rem 0.875rem 2rem;
         border: 2px solid #e0e0e0;
         border-radius: 12px;
-        font-size: 1.125rem;
+        font-size: 18px;
         font-weight: 600;
         -moz-appearance: textfield;
     }
@@ -745,7 +746,7 @@ get_header();
     }
 
     .conversion-display {
-        font-size: 1rem;
+        font-size: 18px;
         font-weight: 600;
         color: #666;
         white-space: nowrap;
@@ -754,7 +755,7 @@ get_header();
 
     .amount-error {
         color: #ef4444;
-        font-size: 0.875rem;
+        font-size: 1.1rem;
         margin-bottom: 1rem;
         min-height: 1.25rem;
     }
@@ -764,7 +765,7 @@ get_header();
         width: 100%;
         padding: 1rem;
         border-radius: 12px;
-        font-size: 1.125rem;
+        font-size: 18px;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.2s;
@@ -885,14 +886,14 @@ get_header();
         background: transparent;
         border: none;
         font-family: monospace;
-        font-size: 0.875rem;
+        font-size: 18px;
         color: #333;
     }
 
     .copy-button {
         background: none;
         border: none;
-        font-size: 1.25rem;
+        font-size: 18px;
         cursor: pointer;
         padding: 0.5rem;
         border-radius: 8px;
@@ -913,13 +914,13 @@ get_header();
 
     .wallet-warning p {
         margin: 0;
-        font-size: 0.875rem;
+        font-size: 16px;
         color: #8B6914;
         line-height: 1.5;
     }
 
     .info-icon {
-        font-size: 0.875rem;
+        font-size: 16px;
         color: #999;
         margin-left: 0.5rem;
     }
@@ -932,6 +933,19 @@ get_header();
         border-radius: 24px;
         padding: 2rem;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .givewp-form-wrapper p {
+        color: #555;
+    }
+    
+    form[id*=give-form] .give-donation-amount #give-amount, form[id*=give-form] .give-donation-amount #give-amount-text {
+        width: calc(100% - 38px);
+        padding: 0.875rem 3.5rem 0.875rem 2rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 0px 12px 12px 0px;
+        font-size: 18px;
+        font-weight: 600;
     }
 
     /* Sidebar / Accordion */
@@ -953,14 +967,14 @@ get_header();
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 1.125rem;
+        font-size: 18px;
         font-weight: 700;
         margin: 0 0 1rem 0;
         color: #000;
     }
 
     .accordion-main-title .icon {
-        font-size: 1.25rem;
+        font-size: 18px;
     }
 
     .accordion {
@@ -985,7 +999,7 @@ get_header();
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.95rem;
+        font-size: 16px;
         font-weight: 600;
         color: #000;
         transition: background-color 0.2s;
@@ -1000,7 +1014,7 @@ get_header();
     }
 
     .accordion-icon {
-        font-size: 0.75rem;
+        font-size: 16px;
         transition: transform 0.3s;
         color: #666;
     }
@@ -1022,12 +1036,13 @@ get_header();
     .accordion-body {
         padding: 1rem;
         color: #555;
-        font-size: 0.9rem;
+        font-size: 16px;
         line-height: 1.6;
     }
 
     .accordion-body p {
         margin: 0 0 0.5rem 0;
+        font-size: 16px;
     }
 
     .accordion-body p:last-child {
