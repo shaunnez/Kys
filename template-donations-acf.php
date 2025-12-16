@@ -26,26 +26,28 @@ get_header();
     <div class="donations-container">
         <!-- Left Column: Forms -->
         <div class="donations-forms">
-            <!-- Tabs Navigation -->
-            <div class="donation-tabs">
-                <button 
-                    class="tab-button active" 
-                    data-tab="cash"
-                    data-testid="button-tab-cash"
-                    aria-selected="true"
-                    aria-controls="tab-panel-cash"
-                >
-                    Donate Cash
-                </button>
-                <button 
-                    class="tab-button" 
-                    data-tab="crypto"
-                    data-testid="button-tab-crypto"
-                    aria-selected="false"
-                    aria-controls="tab-panel-crypto"
-                >
-                    Donate Crypto
-                </button>
+            <!-- Tabs Navigation - Pill Style -->
+            <div class="donation-tabs-wrapper">
+                <div class="donation-tabs">
+                    <button 
+                        class="tab-button active" 
+                        data-tab="cash"
+                        data-testid="button-tab-cash"
+                        aria-selected="true"
+                        aria-controls="tab-panel-cash"
+                    >
+                        Donate Cash
+                    </button>
+                    <button 
+                        class="tab-button" 
+                        data-tab="crypto"
+                        data-testid="button-tab-crypto"
+                        aria-selected="false"
+                        aria-controls="tab-panel-crypto"
+                    >
+                        Donate Crypto
+                    </button>
+                </div>
             </div>
 
             <!-- Tab Panels -->
@@ -59,15 +61,7 @@ get_header();
                     data-testid="panel-cash-form"
                 >
                     <div class="givewp-form-wrapper">
-                        <?php
-                        $givewp_form_id = get_field( 'givewp_form_id' );
-                        
-                        if ( $givewp_form_id ) {
-                            echo do_shortcode( '[give_form id="' . intval( $givewp_form_id ) . '"]' );
-                        } else {
-                            echo '<p class="notice">' . esc_html__( 'GiveWP form not configured. Please set the form ID in ACF.', 'textdomain' ) . '</p>';
-                        }
-                        ?>
+                        <?php echo do_shortcode( '[give_form id="315"]' ); ?>
                     </div>
                 </div>
 
@@ -170,18 +164,22 @@ get_header();
                                     <div class="form-row two-col">
                                         <div class="form-field">
                                             <input type="text" id="first-name" placeholder="First name" data-testid="input-firstName" />
+                                            <span class="field-error" id="error-firstName"></span>
                                         </div>
                                         <div class="form-field">
                                             <input type="text" id="last-name" placeholder="Last name" data-testid="input-lastName" />
+                                            <span class="field-error" id="error-lastName"></span>
                                         </div>
                                     </div>
 
                                     <div class="form-field">
                                         <input type="email" id="donor-email" placeholder="Email" data-testid="input-email" />
+                                        <span class="field-error" id="error-email"></span>
                                     </div>
 
                                     <div class="form-field">
                                         <input type="text" id="address1" placeholder="Address 1" data-testid="input-address1" />
+                                        <span class="field-error" id="error-address1"></span>
                                     </div>
 
                                     <div class="form-field">
@@ -191,18 +189,22 @@ get_header();
                                     <div class="form-row two-col">
                                         <div class="form-field">
                                             <input type="text" id="country" placeholder="Country" data-testid="input-country" />
+                                            <span class="field-error" id="error-country"></span>
                                         </div>
                                         <div class="form-field">
                                             <input type="text" id="state" placeholder="State/Province" data-testid="input-state" />
+                                            <span class="field-error" id="error-state"></span>
                                         </div>
                                     </div>
 
                                     <div class="form-row two-col">
                                         <div class="form-field">
                                             <input type="text" id="city" placeholder="City" data-testid="input-city" />
+                                            <span class="field-error" id="error-city"></span>
                                         </div>
                                         <div class="form-field">
                                             <input type="text" id="zip" placeholder="ZIP/Postal Code" data-testid="input-zip" />
+                                            <span class="field-error" id="error-zip"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -329,55 +331,7 @@ get_header();
 
         <!-- Right Column: Accordion -->
         <aside class="donations-sidebar">
-            <div class="accordion-container" data-testid="container-ways-to-give">
-                <h2 class="accordion-main-title">
-                    <span class="icon">💡</span>
-                    Ways to Give
-                </h2>
-
-                <?php
-                $accordion_items = get_field( 'ways_to_give_accordion' );
-                
-                if ( $accordion_items ) :
-                    ?>
-                    <div class="accordion">
-                        <?php foreach ( $accordion_items as $index => $item ) : ?>
-                            <div class="accordion-item" data-testid="accordion-item-<?php echo $index; ?>">
-                                <button 
-                                    class="accordion-button" 
-                                    aria-expanded="false"
-                                    aria-controls="accordion-content-<?php echo $index; ?>"
-                                    data-testid="button-accordion-<?php echo $index; ?>"
-                                >
-                                    <span class="accordion-item-title" data-testid="text-accordion-title-<?php echo $index; ?>">
-                                        <?php echo esc_html( $item['title'] ?? '' ); ?>
-                                    </span>
-                                    <span class="accordion-icon">∨</span>
-                                </button>
-
-                                <div 
-                                    id="accordion-content-<?php echo $index; ?>"
-                                    class="accordion-content"
-                                    role="region"
-                                    data-testid="content-accordion-body-<?php echo $index; ?>"
-                                >
-                                    <div class="accordion-body">
-                                        <?php echo wp_kses_post( $item['content'] ?? '' ); ?>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php
-                else :
-                    ?>
-                    <div class="no-accordion" data-testid="text-no-accordion">
-                        <p><?php esc_html_e( 'Accordion sections not configured.', 'textdomain' ); ?></p>
-                    </div>
-                    <?php
-                endif;
-                ?>
-            </div>
+            <?php echo do_shortcode( '[kys_donate_accordions]' ); ?>
         </aside>
     </div>
 </div>
@@ -423,26 +377,28 @@ get_header();
         gap: 2rem;
     }
 
-    /* Tabs */
-    .donation-tabs {
-        display: flex;
-        gap: 1rem;
+    /* Pill-Style Tabs */
+    .donation-tabs-wrapper {
         margin-bottom: 1.5rem;
-        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .donation-tabs {
+        display: inline-flex;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 9999px;
+        padding: 4px;
     }
 
     .tab-button {
-        background: none;
+        background: transparent;
         border: none;
-        padding: 1rem 0;
+        padding: 0.75rem 1.5rem;
         font-size: 1rem;
         font-weight: 600;
-        color: #999;
+        color: #666;
         cursor: pointer;
-        border-bottom: 3px solid transparent;
+        border-radius: 9999px;
         transition: all 0.3s ease;
-        position: relative;
-        bottom: -2px;
     }
 
     .tab-button:hover {
@@ -450,8 +406,9 @@ get_header();
     }
 
     .tab-button.active {
+        background: #FCD535;
         color: #000;
-        border-bottom-color: #000;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     /* Tab Panels */
@@ -469,8 +426,8 @@ get_header();
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     /* Crypto Widget */
@@ -590,6 +547,7 @@ get_header();
     /* Form Fields */
     .form-field {
         margin-bottom: 1rem;
+        position: relative;
     }
 
     .form-field input,
@@ -606,6 +564,18 @@ get_header();
     .form-field select:focus {
         outline: none;
         border-color: #333;
+    }
+
+    .form-field input.error {
+        border-color: #ef4444;
+    }
+
+    .field-error {
+        display: block;
+        color: #ef4444;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        min-height: 1rem;
     }
 
     .form-row.two-col {
@@ -838,111 +808,12 @@ get_header();
 
     /* GiveWP wrapper */
     .givewp-form-wrapper {
-        background: #f9f9f9;
-        border: 2px solid #000;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        border: 2px solid rgba(0, 0, 0, 0.1);
         border-radius: 24px;
         padding: 2rem;
-    }
-
-    /* Sidebar */
-    .donations-sidebar {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .accordion-container {
-        background: #fffef0;
-        border: 2px solid #d4c89f;
-        border-radius: 16px;
-        padding: 1.5rem;
-        position: sticky;
-        top: 2rem;
-    }
-
-    .accordion-main-title {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1.125rem;
-        font-weight: 700;
-        margin: 0 0 1rem 0;
-        color: #000;
-    }
-
-    .accordion-main-title .icon {
-        font-size: 1.25rem;
-    }
-
-    /* Accordion */
-    .accordion {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .accordion-item {
-        border: 2px solid #d4c89f;
-        border-radius: 8px;
-        overflow: hidden;
-        background: #fff;
-    }
-
-    .accordion-button {
-        width: 100%;
-        padding: 1rem;
-        background: #fff;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #000;
-        transition: background-color 0.2s;
-    }
-
-    .accordion-button:hover {
-        background: #f5f5f5;
-    }
-
-    .accordion-button[aria-expanded="true"] {
-        background: #f0f0f0;
-    }
-
-    .accordion-icon {
-        font-size: 0.75rem;
-        transition: transform 0.3s;
-        color: #666;
-    }
-
-    .accordion-button[aria-expanded="true"] .accordion-icon {
-        transform: scaleY(-1);
-    }
-
-    .accordion-content {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s;
-    }
-
-    .accordion-button[aria-expanded="true"] ~ .accordion-content {
-        max-height: 500px;
-    }
-
-    .accordion-body {
-        padding: 1rem;
-        color: #555;
-        font-size: 0.9rem;
-        line-height: 1.6;
-    }
-
-    .accordion-body p {
-        margin: 0 0 0.5rem 0;
-    }
-
-    .accordion-body p:last-child {
-        margin-bottom: 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
     /* Responsive */
@@ -953,10 +824,6 @@ get_header();
 
         .donations-header h1 {
             font-size: 2rem;
-        }
-
-        .accordion-container {
-            position: static;
         }
 
         .amount-row {
@@ -972,7 +839,7 @@ get_header();
 
 <script>
 document.addEventListener( 'DOMContentLoaded', function() {
-    // Exchange rates: 1 unit of crypto = X NZD
+    // Exchange rates: 1 unit of crypto = X NZD (matching React version)
     const exchangeRates = {
         BTC: 130000,
         ETH: 4500,
@@ -987,12 +854,24 @@ document.addEventListener( 'DOMContentLoaded', function() {
         USDC: 'Ethereum'
     };
 
+    // State management (matching React version)
     let currentStep = 1;
     let selectedCurrency = 'BTC';
     let nzdAmount = 100;
     let isAnonymous = false;
-    let formData = {};
+    let formData = {
+        firstName: '',
+        lastName: '',
+        email: '',
+        address1: '',
+        address2: '',
+        country: '',
+        state: '',
+        city: '',
+        zip: ''
+    };
     let taxEmail = '';
+    let cryptoErrors = {};
 
     // Elements
     const tabButtons = document.querySelectorAll( '.tab-button' );
@@ -1020,23 +899,14 @@ document.addEventListener( 'DOMContentLoaded', function() {
         } );
     } );
 
-    // Accordion functionality
-    const accordionButtons = document.querySelectorAll( '.accordion-button' );
-    accordionButtons.forEach( button => {
-        button.addEventListener( 'click', function() {
-            const isExpanded = this.getAttribute( 'aria-expanded' ) === 'true';
-            const contentId = this.getAttribute( 'aria-controls' );
-            const content = document.getElementById( contentId );
-            if ( content ) {
-                this.setAttribute( 'aria-expanded', !isExpanded );
-                content.style.maxHeight = isExpanded ? '0px' : content.scrollHeight + 'px';
-            }
-        } );
-    } );
+    // Calculate crypto amount (matching React logic)
+    function getCryptoAmount() {
+        return ( nzdAmount / exchangeRates[ selectedCurrency ] ).toFixed( 8 );
+    }
 
     // Update conversion display
     function updateConversion() {
-        const crypto = ( nzdAmount / exchangeRates[ selectedCurrency ] ).toFixed( 8 );
+        const crypto = getCryptoAmount();
         if ( conversionEl ) conversionEl.textContent = crypto;
         if ( currencyLabel ) currencyLabel.textContent = selectedCurrency;
     }
@@ -1066,19 +936,110 @@ document.addEventListener( 'DOMContentLoaded', function() {
     // Amount input change
     if ( nzdInput ) {
         nzdInput.addEventListener( 'input', function() {
-            nzdAmount = parseFloat( this.value ) || 0;
-            updateConversion();
+            const val = this.value;
+            if ( val === '' || parseFloat( val ) >= 0 ) {
+                nzdAmount = parseFloat( val ) || 0;
+                updateConversion();
+            }
         } );
     }
 
-    // Anonymous checkbox
+    // Anonymous checkbox (matching React logic)
     if ( anonymousCheckbox ) {
         anonymousCheckbox.addEventListener( 'change', function() {
             isAnonymous = this.checked;
             if ( personalFields ) {
                 personalFields.style.display = isAnonymous ? 'none' : 'block';
             }
+            // Clear errors when toggling
+            clearAllErrors();
         } );
+    }
+
+    // Clear all validation errors
+    function clearAllErrors() {
+        cryptoErrors = {};
+        document.querySelectorAll( '.field-error' ).forEach( el => el.textContent = '' );
+        document.querySelectorAll( '.form-field input.error' ).forEach( el => el.classList.remove( 'error' ) );
+    }
+
+    // Show field error
+    function showError( fieldId, message ) {
+        const input = document.getElementById( fieldId );
+        const errorEl = document.getElementById( 'error-' + fieldId.replace( '-', '' ).replace( 'first-name', 'firstName' ).replace( 'last-name', 'lastName' ).replace( 'donor-email', 'email' ) );
+        if ( input ) input.classList.add( 'error' );
+        if ( errorEl ) errorEl.textContent = message;
+    }
+
+    // Validate personal info (matching React validateCryptoPersonalInfo)
+    function validateCryptoPersonalInfo() {
+        const newErrors = {};
+        clearAllErrors();
+
+        if ( !isAnonymous ) {
+            const firstName = document.getElementById( 'first-name' )?.value?.trim() || '';
+            const lastName = document.getElementById( 'last-name' )?.value?.trim() || '';
+            const email = document.getElementById( 'donor-email' )?.value?.trim() || '';
+            const address1 = document.getElementById( 'address1' )?.value?.trim() || '';
+            const country = document.getElementById( 'country' )?.value?.trim() || '';
+            const state = document.getElementById( 'state' )?.value?.trim() || '';
+            const city = document.getElementById( 'city' )?.value?.trim() || '';
+            const zip = document.getElementById( 'zip' )?.value?.trim() || '';
+
+            if ( !firstName ) {
+                newErrors.firstName = 'Required';
+                showError( 'first-name', 'Required' );
+            }
+            if ( !lastName ) {
+                newErrors.lastName = 'Required';
+                showError( 'last-name', 'Required' );
+            }
+            if ( !email ) {
+                newErrors.email = 'Required';
+                showError( 'donor-email', 'Required' );
+            } else if ( !email.includes( '@' ) ) {
+                newErrors.email = 'Invalid email';
+                showError( 'donor-email', 'Invalid email' );
+            }
+            if ( !address1 ) {
+                newErrors.address1 = 'Required';
+                showError( 'address1', 'Required' );
+            }
+            if ( !country ) {
+                newErrors.country = 'Required';
+                showError( 'country', 'Required' );
+            }
+            if ( !state ) {
+                newErrors.state = 'Required';
+                showError( 'state', 'Required' );
+            }
+            if ( !city ) {
+                newErrors.city = 'Required';
+                showError( 'city', 'Required' );
+            }
+            if ( !zip ) {
+                newErrors.zip = 'Required';
+                showError( 'zip', 'Required' );
+            }
+        }
+
+        cryptoErrors = newErrors;
+        return Object.keys( newErrors ).length === 0;
+    }
+
+    // Collect form data
+    function collectFormData() {
+        formData = {
+            firstName: document.getElementById( 'first-name' )?.value || '',
+            lastName: document.getElementById( 'last-name' )?.value || '',
+            email: document.getElementById( 'donor-email' )?.value || '',
+            address1: document.getElementById( 'address1' )?.value || '',
+            address2: document.getElementById( 'address2' )?.value || '',
+            country: document.getElementById( 'country' )?.value || '',
+            state: document.getElementById( 'state' )?.value || '',
+            city: document.getElementById( 'city' )?.value || '',
+            zip: document.getElementById( 'zip' )?.value || ''
+        };
     }
 
     // Step navigation
@@ -1090,7 +1051,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
 
         // Update wallet step with correct values
         if ( step === 4 ) {
-            const cryptoAmount = ( nzdAmount / exchangeRates[ selectedCurrency ] ).toFixed( 8 );
+            const cryptoAmount = getCryptoAmount();
             const finalAmountEl = document.getElementById( 'final-amount' );
             const warningCurrency = document.getElementById( 'warning-currency' );
             const warningBlockchain = document.getElementById( 'warning-blockchain' );
@@ -1098,6 +1059,36 @@ document.addEventListener( 'DOMContentLoaded', function() {
             if ( warningCurrency ) warningCurrency.textContent = selectedCurrency;
             if ( warningBlockchain ) warningBlockchain.textContent = blockchainNames[ selectedCurrency ];
         }
+    }
+
+    // Reset all state (matching React logic)
+    function resetState() {
+        selectedCurrency = 'BTC';
+        nzdAmount = 100;
+        isAnonymous = false;
+        formData = { firstName: '', lastName: '', email: '', address1: '', address2: '', country: '', state: '', city: '', zip: '' };
+        taxEmail = '';
+        cryptoErrors = {};
+
+        // Reset UI
+        if ( nzdInput ) nzdInput.value = '100';
+        if ( currencySelect ) currencySelect.value = 'BTC';
+        if ( anonymousCheckbox ) anonymousCheckbox.checked = false;
+        if ( personalFields ) personalFields.style.display = 'block';
+
+        // Reset form inputs
+        [ 'first-name', 'last-name', 'donor-email', 'address1', 'address2', 'country', 'state', 'city', 'zip', 'tax-email' ].forEach( id => {
+            const el = document.getElementById( id );
+            if ( el ) el.value = '';
+        } );
+
+        // Reset coin buttons
+        coinButtons.forEach( btn => {
+            btn.classList.toggle( 'active', btn.getAttribute( 'data-currency' ) === 'BTC' );
+        } );
+
+        clearAllErrors();
+        updateConversion();
     }
 
     // Back buttons
@@ -1115,23 +1106,14 @@ document.addEventListener( 'DOMContentLoaded', function() {
         } );
     }
 
-    // Step 2: Next button
+    // Step 2: Next button (with validation)
     const btnNextPersonal = document.getElementById( 'btn-next-personal' );
     if ( btnNextPersonal ) {
         btnNextPersonal.addEventListener( 'click', function() {
-            // Collect form data
-            formData = {
-                firstName: document.getElementById( 'first-name' )?.value || '',
-                lastName: document.getElementById( 'last-name' )?.value || '',
-                email: document.getElementById( 'donor-email' )?.value || '',
-                address1: document.getElementById( 'address1' )?.value || '',
-                address2: document.getElementById( 'address2' )?.value || '',
-                country: document.getElementById( 'country' )?.value || '',
-                state: document.getElementById( 'state' )?.value || '',
-                city: document.getElementById( 'city' )?.value || '',
-                zip: document.getElementById( 'zip' )?.value || ''
-            };
-            showStep( 3 );
+            if ( validateCryptoPersonalInfo() ) {
+                collectFormData();
+                showStep( 3 );
+            }
         } );
     }
 
@@ -1150,25 +1132,26 @@ document.addEventListener( 'DOMContentLoaded', function() {
         } );
     }
 
-    // Step 4: Copy button
+    // Step 4: Copy button (matching React handleCopyAddress)
     const btnCopy = document.getElementById( 'btn-copy' );
     if ( btnCopy ) {
         btnCopy.addEventListener( 'click', function() {
             const walletInput = document.getElementById( 'wallet-address' );
             if ( walletInput ) {
-                navigator.clipboard.writeText( walletInput.value );
-                this.textContent = '✓';
-                setTimeout( () => { this.textContent = '📋'; }, 2000 );
+                navigator.clipboard.writeText( walletInput.value ).then( () => {
+                    this.textContent = '✓';
+                    setTimeout( () => { this.textContent = '📋'; }, 2000 );
+                } );
             }
         } );
     }
 
-    // Step 4: Start Over
+    // Step 4: Start Over (matching React logic)
     const btnStartOver = document.getElementById( 'btn-start-over' );
     if ( btnStartOver ) {
         btnStartOver.addEventListener( 'click', async function() {
-            // Submit donation
-            const cryptoAmount = ( nzdAmount / exchangeRates[ selectedCurrency ] ).toFixed( 8 );
+            // Submit donation (matching React)
+            const cryptoAmount = getCryptoAmount();
             try {
                 await fetch( '/api/donations/crypto', {
                     method: 'POST',
@@ -1178,34 +1161,31 @@ document.addEventListener( 'DOMContentLoaded', function() {
                         amount: cryptoAmount,
                         currency: selectedCurrency,
                         isAnonymous: isAnonymous,
-                        ...formData,
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        email: formData.email,
+                        address1: formData.address1,
+                        address2: formData.address2,
+                        country: formData.country,
+                        state: formData.state,
+                        city: formData.city,
+                        zip: formData.zip,
                         taxReceiptEmail: taxEmail,
                         walletAddress: document.getElementById( 'wallet-address' )?.value || ''
                     } )
                 } );
+                console.log( 'Crypto donation created' );
             } catch ( err ) {
-                console.error( 'Error submitting donation:', err );
+                console.error( 'Error submitting crypto donation:', err );
             }
 
-            // Reset
-            selectedCurrency = 'BTC';
-            nzdAmount = 100;
-            isAnonymous = false;
-            formData = {};
-            taxEmail = '';
-            if ( nzdInput ) nzdInput.value = '100';
-            if ( currencySelect ) currencySelect.value = 'BTC';
-            if ( anonymousCheckbox ) anonymousCheckbox.checked = false;
-            if ( personalFields ) personalFields.style.display = 'block';
-            coinButtons.forEach( btn => {
-                btn.classList.toggle( 'active', btn.getAttribute( 'data-currency' ) === 'BTC' );
-            } );
-            updateConversion();
+            // Reset and go back to step 1
+            resetState();
             showStep( 1 );
         } );
     }
 
-    // Initial conversion
+    // Initialize with correct conversion
     updateConversion();
 } );
 </script>
