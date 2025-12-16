@@ -1542,9 +1542,9 @@ document.addEventListener( 'DOMContentLoaded', function() {
         const walletAddress = walletData[ selectedCurrency ] || '';
         
         // Get nonce from WordPress localized script
-        const nonce = ( typeof cryptoDonationAPI !== 'undefined' && cryptoDonationAPI.nonce ) 
-            ? cryptoDonationAPI.nonce 
-            : '';
+        // const nonce = ( typeof cryptoDonationAPI !== 'undefined' && cryptoDonationAPI.nonce ) 
+        //     ? cryptoDonationAPI.nonce 
+        //     : '';
         
         try {
             const headers = { 'Content-Type': 'application/json' };
