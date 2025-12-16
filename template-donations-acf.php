@@ -1,9 +1,9 @@
 <?php
 /**
- * Template: Donations with ACF Accordion
+ * Template: Donations with Tabs and ACF Accordion
  * 
- * This template displays donation information using Advanced Custom Fields (ACF)
- * accordion component for organized content display.
+ * This template displays donation forms (Cash via GiveWP, Crypto via custom form)
+ * alongside a configurable ACF accordion with donation information.
  * 
  * @package WordPress
  */
@@ -11,230 +11,608 @@
 get_header();
 ?>
 
-<div class="donations-container">
+<div class="donations-wrapper">
     <header class="donations-header">
-        <h1><?php the_title(); ?></h1>
-        <p class="donations-subtitle">
-            <?php the_excerpt(); ?>
+        <h1><?php esc_html_e( 'DONATE', 'textdomain' ); ?></h1>
+        <p class="donations-description">
+            <?php 
+            echo wp_kses_post( 
+                __( 'You can donate to us using a credit or debit card, or by bank transfer. If you would like to continually support our work with a regular donation, the best way to do this is to set up an automatic payment through online banking.', 'textdomain' ) 
+            ); 
+            ?>
         </p>
     </header>
 
-    <main class="donations-main">
-        <?php if ( have_posts() ) : ?>
-            <?php while ( have_posts() ) : the_post(); ?>
-                
-                <div class="donations-content">
-                    <!-- ACF Accordion Field -->
-                    <?php
-                    $accordion = get_field( 'donations_accordion' );
-                    
-                    if ( $accordion ) :
+    <div class="donations-container">
+        <!-- Left Column: Forms -->
+        <div class="donations-forms">
+            <!-- Tabs Navigation -->
+            <div class="donation-tabs">
+                <button 
+                    class="tab-button active" 
+                    data-tab="cash"
+                    data-testid="button-tab-cash"
+                    aria-selected="true"
+                    aria-controls="tab-panel-cash"
+                >
+                    Donate Cash
+                </button>
+                <button 
+                    class="tab-button" 
+                    data-tab="crypto"
+                    data-testid="button-tab-crypto"
+                    aria-selected="false"
+                    aria-controls="tab-panel-crypto"
+                >
+                    Donate Crypto
+                </button>
+            </div>
+
+            <!-- Tab Panels -->
+            <div class="tab-panels">
+                <!-- Cash Donation Tab -->
+                <div 
+                    id="tab-panel-cash"
+                    class="tab-panel active" 
+                    role="tabpanel" 
+                    aria-labelledby="tab-cash"
+                    data-testid="panel-cash-form"
+                >
+                    <div class="givewp-form-wrapper">
+                        <?php
+                        // Display GiveWP form using shortcode
+                        // Replace 'form_id' with your actual GiveWP form ID
+                        $givewp_form_id = get_field( 'givewp_form_id' );
+                        
+                        if ( $givewp_form_id ) {
+                            echo do_shortcode( '[give_form id="' . intval( $givewp_form_id ) . '"]' );
+                        } else {
+                            echo '<p class="notice">' . esc_html__( 'GiveWP form not configured. Please set the form ID in ACF.', 'textdomain' ) . '</p>';
+                        }
                         ?>
-                        <div class="acf-accordion-wrapper">
-                            <?php foreach ( $accordion as $index => $item ) : ?>
-                                <div class="accordion-item" data-testid="accordion-item-<?php echo $index; ?>">
-                                    <button 
-                                        class="accordion-header" 
-                                        aria-expanded="false"
-                                        aria-controls="accordion-panel-<?php echo $index; ?>"
-                                        data-testid="button-accordion-header-<?php echo $index; ?>"
-                                    >
-                                        <span class="accordion-title" data-testid="text-accordion-title-<?php echo $index; ?>">
-                                            <?php echo esc_html( $item['title'] ?? 'Section Title' ); ?>
-                                        </span>
-                                        <span class="accordion-icon" aria-hidden="true">+</span>
-                                    </button>
-                                    
-                                    <div 
-                                        id="accordion-panel-<?php echo $index; ?>"
-                                        class="accordion-panel" 
-                                        role="region"
-                                        aria-labelledby="accordion-header-<?php echo $index; ?>"
-                                        data-testid="content-accordion-panel-<?php echo $index; ?>"
-                                    >
-                                        <div class="accordion-content">
-                                            <?php
-                                            if ( isset( $item['content'] ) ) {
-                                                echo wp_kses_post( $item['content'] );
-                                            }
-                                            ?>
-                                        </div>
+                    </div>
+                </div>
+
+                <!-- Crypto Donation Tab -->
+                <div 
+                    id="tab-panel-crypto"
+                    class="tab-panel" 
+                    role="tabpanel" 
+                    aria-labelledby="tab-crypto"
+                    data-testid="panel-crypto-form"
+                >
+                    <div class="crypto-form-wrapper">
+                        <form id="crypto-donation-form" data-testid="form-crypto-donation">
+                            <div class="form-group">
+                                <label for="crypto-amount" data-testid="label-crypto-amount">
+                                    Amount
+                                </label>
+                                <div class="input-group">
+                                    <span class="currency-symbol">₿</span>
+                                    <input 
+                                        type="number" 
+                                        id="crypto-amount" 
+                                        name="amount"
+                                        placeholder="0.00"
+                                        step="0.00000001"
+                                        min="0"
+                                        required
+                                        data-testid="input-crypto-amount"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="crypto-currency" data-testid="label-crypto-currency">
+                                    Cryptocurrency
+                                </label>
+                                <select 
+                                    id="crypto-currency" 
+                                    name="currency"
+                                    required
+                                    data-testid="select-crypto-currency"
+                                >
+                                    <option value="BTC">Bitcoin (BTC)</option>
+                                    <option value="ETH">Ethereum (ETH)</option>
+                                    <option value="USDT">Tether (USDT)</option>
+                                    <option value="USDC">USD Coin (USDC)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="crypto-wallet" data-testid="label-crypto-wallet">
+                                    Your Wallet Address
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="crypto-wallet" 
+                                    name="walletAddress"
+                                    placeholder="Enter your wallet address"
+                                    required
+                                    data-testid="input-crypto-wallet"
+                                />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="crypto-email" data-testid="label-crypto-email">
+                                    Email Address (for receipt)
+                                </label>
+                                <input 
+                                    type="email" 
+                                    id="crypto-email" 
+                                    name="email"
+                                    placeholder="your@email.com"
+                                    required
+                                    data-testid="input-crypto-email"
+                                />
+                            </div>
+
+                            <div class="form-group checkbox">
+                                <input 
+                                    type="checkbox" 
+                                    id="crypto-anonymous" 
+                                    name="isAnonymous"
+                                    data-testid="checkbox-crypto-anonymous"
+                                />
+                                <label for="crypto-anonymous" data-testid="label-crypto-anonymous-text">
+                                    Make this donation anonymous
+                                </label>
+                            </div>
+
+                            <button 
+                                type="submit" 
+                                class="donate-button"
+                                data-testid="button-crypto-submit"
+                            >
+                                Donate Crypto
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Accordion -->
+        <aside class="donations-sidebar">
+            <div class="accordion-container" data-testid="container-ways-to-give">
+                <h2 class="accordion-title">
+                    <span class="icon">💡</span>
+                    Ways to Give
+                </h2>
+
+                <?php
+                $accordion_items = get_field( 'ways_to_give_accordion' );
+                
+                if ( $accordion_items ) :
+                    ?>
+                    <div class="accordion">
+                        <?php foreach ( $accordion_items as $index => $item ) : ?>
+                            <div class="accordion-item" data-testid="accordion-item-<?php echo $index; ?>">
+                                <button 
+                                    class="accordion-button" 
+                                    aria-expanded="false"
+                                    aria-controls="accordion-content-<?php echo $index; ?>"
+                                    data-testid="button-accordion-<?php echo $index; ?>"
+                                >
+                                    <span class="accordion-item-title" data-testid="text-accordion-title-<?php echo $index; ?>">
+                                        <?php echo esc_html( $item['title'] ?? '' ); ?>
+                                    </span>
+                                    <span class="accordion-icon">∨</span>
+                                </button>
+
+                                <div 
+                                    id="accordion-content-<?php echo $index; ?>"
+                                    class="accordion-content"
+                                    role="region"
+                                    data-testid="content-accordion-body-<?php echo $index; ?>"
+                                >
+                                    <div class="accordion-body">
+                                        <?php echo wp_kses_post( $item['content'] ?? '' ); ?>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php
-                    endif;
-                    ?>
-                </div>
-
-                <!-- Post Content Fallback -->
-                <div class="post-content" data-testid="content-post-body">
-                    <?php the_content(); ?>
-                </div>
-
-                <!-- Navigation -->
-                <nav class="post-navigation" data-testid="nav-post-navigation">
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                     <?php
-                    wp_link_pages( array(
-                        'before'      => '<div class="page-links"><span>' . esc_html__( 'Pages:', 'textdomain' ) . '</span>',
-                        'after'       => '</div>',
-                        'link_before' => '<span>',
-                        'link_after'  => '</span>',
-                    ) );
+                else :
                     ?>
-                </nav>
-
-            <?php endwhile; ?>
-        <?php else : ?>
-            <div class="no-content" data-testid="text-no-posts">
-                <p><?php esc_html_e( 'Sorry, no posts matched your criteria.', 'textdomain' ); ?></p>
+                    <div class="no-accordion" data-testid="text-no-accordion">
+                        <p><?php esc_html_e( 'Accordion sections not configured.', 'textdomain' ); ?></p>
+                    </div>
+                    <?php
+                endif;
+                ?>
             </div>
-        <?php endif; ?>
-    </main>
+        </aside>
+    </div>
 </div>
 
 <style>
-    .donations-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
+    * {
+        box-sizing: border-box;
+    }
+
+    .donations-wrapper {
+        background-color: #fff;
+        padding: 3rem 1rem;
     }
 
     .donations-header {
-        margin-bottom: 2rem;
-        text-align: center;
+        max-width: 1200px;
+        margin: 0 auto 2rem;
     }
 
     .donations-header h1 {
         font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+        color: #000;
+    }
+
+    .donations-description {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0;
+    }
+
+    .donations-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 2rem;
+    }
+
+    /* Tabs */
+    .donation-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab-button {
+        background: none;
+        border: none;
+        padding: 1rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #999;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+        bottom: -2px;
+    }
+
+    .tab-button:hover {
         color: #333;
     }
 
-    .donations-subtitle {
-        font-size: 1.1rem;
-        color: #666;
-        line-height: 1.6;
+    .tab-button.active {
+        color: #000;
+        border-bottom-color: #000;
     }
 
-    .acf-accordion-wrapper {
-        margin: 2rem 0;
+    /* Tab Panels */
+    .tab-panels {
+        position: relative;
     }
 
-    .accordion-item {
-        border: 1px solid #e0e0e0;
+    .tab-panel {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .tab-panel.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Forms */
+    .givewp-form-wrapper,
+    .crypto-form-wrapper {
+        background: #f9f9f9;
+        border: 2px solid #000;
+        border-radius: 8px;
+        padding: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.85rem;
         margin-bottom: 0.5rem;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input:not([type="checkbox"]),
+    .form-group select {
+        padding: 0.75rem;
+        border: 2px solid #000;
         border-radius: 4px;
-        overflow: hidden;
+        font-size: 1rem;
+        background: #fff;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .currency-symbol {
+        position: absolute;
+        left: 0.75rem;
+        font-weight: 600;
+        color: #666;
+    }
+
+    .input-group input {
+        padding-left: 2rem;
+        width: 100%;
+    }
+
+    .form-group.checkbox {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group.checkbox input {
+        width: auto;
+        margin: 0;
+    }
+
+    .form-group.checkbox label {
+        margin: 0;
+        text-transform: none;
+        font-weight: 400;
+        font-size: 0.95rem;
+    }
+
+    .donate-button {
+        width: 100%;
+        padding: 1rem;
+        background: #fff;
+        border: 2px solid #000;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
         transition: all 0.3s ease;
     }
 
-    .accordion-item:hover {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    .donate-button:hover {
+        background: #000;
+        color: #fff;
     }
 
-    .accordion-header {
+    /* Sidebar */
+    .donations-sidebar {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .accordion-container {
+        background: #fffef0;
+        border: 2px solid #d4c89f;
+        border-radius: 8px;
+        padding: 1.5rem;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .accordion-container .accordion-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+        color: #000;
+    }
+
+    .accordion-container .icon {
+        font-size: 1.25rem;
+    }
+
+    /* Accordion */
+    .accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .accordion-item {
+        border: 2px solid #d4c89f;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .accordion-button {
         width: 100%;
-        padding: 1.25rem 1.5rem;
-        background-color: #f5f5f5;
+        padding: 1rem;
+        background: #fff;
         border: none;
         cursor: pointer;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 600;
-        color: #333;
+        color: #000;
         transition: background-color 0.3s ease;
     }
 
-    .accordion-header:hover {
-        background-color: #efefef;
+    .accordion-button:hover {
+        background: #f5f5f5;
     }
 
-    .accordion-header[aria-expanded="true"] {
-        background-color: #e8f4f8;
+    .accordion-button[aria-expanded="true"] {
+        background: #f0f0f0;
     }
 
     .accordion-icon {
-        font-size: 1.5rem;
+        font-size: 0.75rem;
         transition: transform 0.3s ease;
-        color: #0066cc;
+        color: #666;
     }
 
-    .accordion-header[aria-expanded="true"] .accordion-icon {
-        transform: rotate(45deg);
+    .accordion-button[aria-expanded="true"] .accordion-icon {
+        transform: scaleY(-1);
     }
 
-    .accordion-panel {
+    .accordion-content {
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease;
     }
 
-    .accordion-panel[aria-expanded="true"] {
-        max-height: 1000px;
+    .accordion-button[aria-expanded="true"] ~ .accordion-content {
+        max-height: 500px;
     }
 
-    .accordion-content {
-        padding: 1.5rem;
-        background-color: #fafafa;
+    .accordion-body {
+        padding: 1rem;
         color: #555;
-        line-height: 1.8;
+        font-size: 0.9rem;
+        line-height: 1.6;
     }
 
-    .accordion-content p {
-        margin: 0 0 1rem 0;
+    .accordion-body p {
+        margin: 0 0 0.5rem 0;
     }
 
-    .accordion-content p:last-child {
+    .accordion-body p:last-child {
         margin-bottom: 0;
     }
 
-    .post-content {
-        margin: 2rem 0;
-        line-height: 1.8;
-        color: #333;
-    }
+    /* Responsive */
+    @media (max-width: 768px) {
+        .donations-container {
+            grid-template-columns: 1fr;
+        }
 
-    .no-content {
-        text-align: center;
-        padding: 2rem;
-        color: #999;
-        font-size: 1.1rem;
+        .donations-header h1 {
+            font-size: 2rem;
+        }
+
+        .accordion-container {
+            position: static;
+        }
     }
 </style>
 
 <script>
     document.addEventListener( 'DOMContentLoaded', function() {
-        const accordionHeaders = document.querySelectorAll( '.accordion-header' );
+        // Tab functionality
+        const tabButtons = document.querySelectorAll( '.tab-button' );
+        const tabPanels = document.querySelectorAll( '.tab-panel' );
 
-        accordionHeaders.forEach( header => {
-            header.addEventListener( 'click', function() {
-                const isExpanded = this.getAttribute( 'aria-expanded' ) === 'true';
-                const panelId = this.getAttribute( 'aria-controls' );
-                const panel = document.getElementById( panelId );
+        tabButtons.forEach( button => {
+            button.addEventListener( 'click', function() {
+                const tabName = this.getAttribute( 'data-tab' );
 
-                // Close other panels
-                accordionHeaders.forEach( otherHeader => {
-                    if ( otherHeader !== this ) {
-                        otherHeader.setAttribute( 'aria-expanded', 'false' );
-                        const otherPanelId = otherHeader.getAttribute( 'aria-controls' );
-                        const otherPanel = document.getElementById( otherPanelId );
-                        if ( otherPanel ) {
-                            otherPanel.setAttribute( 'aria-expanded', 'false' );
-                        }
-                    }
+                // Deactivate all tabs and panels
+                tabButtons.forEach( btn => {
+                    btn.classList.remove( 'active' );
+                    btn.setAttribute( 'aria-selected', 'false' );
+                } );
+                tabPanels.forEach( panel => {
+                    panel.classList.remove( 'active' );
                 } );
 
-                // Toggle current panel
-                this.setAttribute( 'aria-expanded', !isExpanded );
-                if ( panel ) {
-                    panel.setAttribute( 'aria-expanded', !isExpanded );
+                // Activate current tab and panel
+                this.classList.add( 'active' );
+                this.setAttribute( 'aria-selected', 'true' );
+                document.getElementById( 'tab-panel-' + tabName ).classList.add( 'active' );
+            } );
+        } );
+
+        // Accordion functionality
+        const accordionButtons = document.querySelectorAll( '.accordion-button' );
+
+        accordionButtons.forEach( button => {
+            button.addEventListener( 'click', function() {
+                const isExpanded = this.getAttribute( 'aria-expanded' ) === 'true';
+                const contentId = this.getAttribute( 'aria-controls' );
+                const content = document.getElementById( contentId );
+
+                if ( content ) {
+                    this.setAttribute( 'aria-expanded', !isExpanded );
+                    if ( !isExpanded ) {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                    } else {
+                        content.style.maxHeight = '0px';
+                    }
                 }
             } );
         } );
+
+        // Crypto form submission
+        const cryptoForm = document.getElementById( 'crypto-donation-form' );
+        if ( cryptoForm ) {
+            cryptoForm.addEventListener( 'submit', async function( e ) {
+                e.preventDefault();
+
+                const formData = new FormData( this );
+                const data = {
+                    donationType: 'crypto',
+                    amount: formData.get( 'amount' ),
+                    currency: formData.get( 'currency' ),
+                    email: formData.get( 'email' ),
+                    walletAddress: formData.get( 'walletAddress' ),
+                    isAnonymous: formData.get( 'isAnonymous' ) ? true : false,
+                };
+
+                try {
+                    // Adjust this URL to match your backend
+                    const response = await fetch( '/api/donations/crypto', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify( data ),
+                    } );
+
+                    if ( response.ok ) {
+                        alert( 'Donation submitted successfully!' );
+                        this.reset();
+                    } else {
+                        alert( 'Error submitting donation. Please try again.' );
+                    }
+                } catch ( error ) {
+                    console.error( 'Error:', error );
+                    alert( 'Error submitting donation. Please try again.' );
+                }
+            } );
+        }
     } );
 </script>
 
