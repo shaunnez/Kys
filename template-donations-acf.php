@@ -432,9 +432,53 @@ get_header();
             </div>
         </aside>
     </div>
+
+    <?php 
+    // WordPress content area - allows content manager to add content below the donation components
+    $content = get_the_content();
+    if ( ! empty( trim( $content ) ) ) : 
+    ?>
+        <div class="donations-additional-content">
+            <?php the_content(); ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <style>
+    /* Additional Content Area */
+    .donations-additional-content {
+        max-width: 1200px;
+        margin: 3rem auto 0;
+        padding: 0 1rem;
+    }
+
+    .donations-additional-content h1,
+    .donations-additional-content h2,
+    .donations-additional-content h3,
+    .donations-additional-content h4,
+    .donations-additional-content h5,
+    .donations-additional-content h6 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .donations-additional-content p {
+        margin-bottom: 1rem;
+        line-height: 1.7;
+    }
+
+    .donations-additional-content ul,
+    .donations-additional-content ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+    }
+
+    .donations-additional-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+
     * {
         box-sizing: border-box;
     }

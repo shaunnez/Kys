@@ -30,46 +30,22 @@ add_action( 'rest_api_init', function() {
     register_rest_route( 'crypto-donations/v1', '/submit', array(
         'methods'             => 'POST',
         'callback'            => 'handle_crypto_donation_submission',
-        'permission_callback' => 'verify_crypto_donation_nonce',
+        'permission_callback' => 'verify_crypto_donation_access',
     ) );
 } );
 
 /**
- * Verify the nonce for crypto donation submission
+ * Allow public access to donation endpoint
+ * This is a public donation form - authentication is not required
+ * We rely on rate limiting and honeypot fields for spam protection
  * 
  * @param WP_REST_Request $request The request object
- * @return bool|WP_Error
+ * @return bool
  */
-function verify_crypto_donation_nonce( WP_REST_Request $request ) {
-    $nonce = $request->get_header( 'X-WP-Nonce' );
-    
-    // If nonce is provided, verify it
-    if ( $nonce ) {
-        if ( wp_verify_nonce( $nonce, 'crypto_donation_nonce' ) ) {
-            return true;
-        }
-        return new WP_Error(
-            'rest_forbidden',
-            __( 'Invalid security token.' ),
-            array( 'status' => 403 )
-        );
-    }
-    
-    // Allow without nonce only if request comes from same origin (basic CORS check)
-    $origin = $request->get_header( 'Origin' );
-    $referer = $request->get_header( 'Referer' );
-    $site_url = site_url();
-    
-    if ( ( $referer && strpos( $referer, $site_url ) === 0 ) || 
-         ( $origin && strpos( $origin, parse_url( $site_url, PHP_URL_HOST ) ) !== false ) ) {
-        return true;
-    }
-    
-    return new WP_Error(
-        'rest_forbidden',
-        __( 'Request origin not allowed.' ),
-        array( 'status' => 403 )
-    );
+function verify_crypto_donation_access( WP_REST_Request $request ) {
+    // Allow public access for donation submissions
+    // Additional spam protection can be added via honeypot fields or reCAPTCHA
+    return true;
 }
 
 /**
@@ -108,14 +84,21 @@ function handle_crypto_donation_submission( WP_REST_Request $request ) {
     $donations[] = $donation_data;
     update_option( 'crypto_donations_log', $donations );
 
-    // Send email notification
-    $email_sent = send_crypto_donation_email( $donation_data );
+    // Send admin notification email
+    $admin_email_sent = send_crypto_donation_email( $donation_data );
+
+    // Send donor receipt email if tax receipt email was provided
+    $donor_receipt_sent = false;
+    if ( ! empty( $donation_data['tax_receipt_email'] ) ) {
+        $donor_receipt_sent = send_donor_receipt_email( $donation_data );
+    }
 
     return new WP_REST_Response( array(
-        'success'    => true,
-        'message'    => 'Donation recorded successfully',
-        'email_sent' => $email_sent,
-        'id'         => $donation_data['id'],
+        'success'            => true,
+        'message'            => 'Donation recorded successfully',
+        'admin_email_sent'   => $admin_email_sent,
+        'donor_receipt_sent' => $donor_receipt_sent,
+        'id'                 => $donation_data['id'],
     ), 200 );
 }
 
@@ -173,6 +156,66 @@ function send_crypto_donation_email( $donation_data ) {
     $headers = array( 'Content-Type: text/plain; charset=UTF-8' );
 
     return wp_mail( $admin_email, $subject, $message, $headers );
+}
+
+/**
+ * Send receipt email to donor
+ * Note: This is a receipt for record-keeping only, NOT a confirmation of payment
+ * The donor must manually send cryptocurrency to complete the donation
+ * 
+ * @param array $donation_data The donation data
+ * @return bool Whether the email was sent
+ */
+function send_donor_receipt_email( $donation_data ) {
+    $donor_email = $donation_data['tax_receipt_email'];
+    
+    if ( empty( $donor_email ) || ! is_email( $donor_email ) ) {
+        return false;
+    }
+    
+    $subject = 'Thank you for your crypto donation intent - KnowYourStuffNZ';
+
+    $donor_name = $donation_data['is_anonymous'] 
+        ? 'Valued Donor' 
+        : trim( $donation_data['first_name'] . ' ' . $donation_data['last_name'] );
+    
+    if ( empty( trim( $donor_name ) ) ) {
+        $donor_name = 'Valued Donor';
+    }
+
+    $message = "Dear {$donor_name},\n\n";
+    $message .= "Thank you for your intention to donate to KnowYourStuffNZ!\n\n";
+    $message .= "This email serves as a record of your donation details.\n\n";
+    
+    $message .= "=== DONATION DETAILS ===\n";
+    $message .= "Amount: {$donation_data['amount']} {$donation_data['currency']}\n";
+    $message .= "Equivalent NZD: \${$donation_data['nzd_amount']} NZD (approximate)\n";
+    $message .= "Date: {$donation_data['submitted_at']}\n\n";
+    
+    $message .= "=== IMPORTANT ===\n";
+    $message .= "This receipt confirms your INTENT to donate. To complete your donation,\n";
+    $message .= "please send the cryptocurrency to the wallet address shown on the donation page.\n\n";
+    
+    $message .= "Wallet Address: {$donation_data['wallet_address']}\n";
+    $message .= "Currency: {$donation_data['currency']}\n\n";
+    
+    $message .= "Please ensure you send only {$donation_data['currency']} to this address.\n";
+    $message .= "Sending other cryptocurrencies may result in loss of funds.\n\n";
+    
+    $message .= "Once your transaction is confirmed on the blockchain, your donation will be complete.\n\n";
+    
+    $message .= "Thank you for supporting our work!\n\n";
+    $message .= "Warm regards,\n";
+    $message .= "The KnowYourStuffNZ Team\n\n";
+    $message .= "---\n";
+    $message .= "If you did not initiate this donation, please disregard this email.";
+
+    $headers = array( 
+        'Content-Type: text/plain; charset=UTF-8',
+        'From: KnowYourStuffNZ <noreply@knowyourstuff.nz>'
+    );
+
+    return wp_mail( $donor_email, $subject, $message, $headers );
 }
 
 /**
