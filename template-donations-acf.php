@@ -344,25 +344,28 @@ get_header();
                         while ( have_rows( 'kys_donate_accordions' ) ) : the_row(); 
                             $title = get_sub_field( 'title' );
                             $content = get_sub_field( 'content' );
+                            $is_open = ( $index === 0 ) ? 'true' : 'false';
                         ?>
                             <div class="accordion-item" data-testid="accordion-item-<?php echo $index; ?>">
                                 <button 
-                                    class="accordion-button" 
-                                    aria-expanded="false"
+                                    class="accordion-button <?php echo $index === 0 ? 'open' : ''; ?>" 
+                                    aria-expanded="<?php echo $is_open; ?>"
                                     aria-controls="accordion-content-<?php echo $index; ?>"
                                     data-testid="button-accordion-<?php echo $index; ?>"
                                 >
                                     <span class="accordion-item-title" data-testid="text-accordion-title-<?php echo $index; ?>">
                                         <?php echo esc_html( $title ); ?>
                                     </span>
-                                    <span class="accordion-icon">∨</span>
+                                    <span class="accordion-icon">▼</span>
                                 </button>
 
                                 <div 
                                     id="accordion-content-<?php echo $index; ?>"
-                                    class="accordion-content"
+                                    class="accordion-content <?php echo $index === 0 ? 'open' : ''; ?>"
                                     role="region"
+                                    aria-labelledby="accordion-button-<?php echo $index; ?>"
                                     data-testid="content-accordion-body-<?php echo $index; ?>"
+                                    style="max-height: <?php echo $index === 0 ? 'auto' : '0'; ?>;"
                                 >
                                     <div class="accordion-body">
                                         <?php echo wp_kses_post( $content ); ?>
