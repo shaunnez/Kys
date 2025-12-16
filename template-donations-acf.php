@@ -760,6 +760,38 @@ get_header();
         min-height: 1.25rem;
     }
 
+    /* Toast Notification */
+    .crypto-toast {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        z-index: 10000;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        max-width: 350px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .crypto-toast.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .crypto-toast.success {
+        background: #10b981;
+        color: #fff;
+    }
+
+    .crypto-toast.error {
+        background: #ef4444;
+        color: #fff;
+    }
+
     /* Buttons */
     .donate-btn {
         width: 100%;
@@ -1443,17 +1475,92 @@ document.addEventListener( 'DOMContentLoaded', function() {
         } );
     }
 
-    // Step 3: Skip / Get Receipt
+    // Toast notification function
+    function showToast( message, type = 'success' ) {
+        const toast = document.createElement( 'div' );
+        toast.className = 'crypto-toast ' + type;
+        toast.textContent = message;
+        document.body.appendChild( toast );
+        
+        // Trigger animation
+        setTimeout( () => toast.classList.add( 'show' ), 10 );
+        
+        // Remove after 4 seconds
+        setTimeout( () => {
+            toast.classList.remove( 'show' );
+            setTimeout( () => toast.remove(), 300 );
+        }, 4000 );
+    }
+
+    // Submit donation to API
+    async function submitDonation() {
+        const cryptoAmount = getCryptoAmount();
+        const walletAddress = walletData[ selectedCurrency ] || '';
+        
+        // Get nonce from WordPress localized script
+        const nonce = ( typeof cryptoDonationAPI !== 'undefined' && cryptoDonationAPI.nonce ) 
+            ? cryptoDonationAPI.nonce 
+            : '';
+        
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if ( nonce ) {
+                headers['X-WP-Nonce'] = nonce;
+            }
+            
+            const response = await fetch( '/wp-json/crypto-donations/v1/submit', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify( {
+                    donationType: 'crypto',
+                    amount: cryptoAmount,
+                    nzdAmount: String( nzdAmount ),
+                    currency: selectedCurrency,
+                    isAnonymous: isAnonymous,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    address1: formData.address1,
+                    address2: formData.address2,
+                    country: formData.country,
+                    state: formData.state,
+                    city: formData.city,
+                    zip: formData.zip,
+                    taxReceiptEmail: taxEmail,
+                    walletAddress: walletAddress
+                } )
+            } );
+            
+            if ( response.ok ) {
+                const result = await response.json();
+                console.log( 'Crypto donation submitted successfully:', result );
+                showToast( 'Donation recorded! Thank you for your generosity.', 'success' );
+                return true;
+            } else {
+                console.error( 'Error submitting donation:', response.status );
+                showToast( 'There was an issue recording your donation.', 'error' );
+                return false;
+            }
+        } catch ( err ) {
+            console.error( 'Error submitting crypto donation:', err );
+            showToast( 'There was an issue recording your donation.', 'error' );
+            return false;
+        }
+    }
+
+    // Step 3: Skip / Get Receipt - now submits donation
     const btnSkip = document.getElementById( 'btn-skip-tax' );
     const btnGetReceipt = document.getElementById( 'btn-get-receipt' );
     if ( btnSkip ) {
-        btnSkip.addEventListener( 'click', function() {
+        btnSkip.addEventListener( 'click', async function() {
+            await submitDonation();
             showStep( 4 );
         } );
     }
     if ( btnGetReceipt ) {
-        btnGetReceipt.addEventListener( 'click', function() {
+        btnGetReceipt.addEventListener( 'click', async function() {
             taxEmail = document.getElementById( 'tax-email' )?.value || '';
+            await submitDonation();
             showStep( 4 );
         } );
     }
@@ -1472,59 +1579,10 @@ document.addEventListener( 'DOMContentLoaded', function() {
         } );
     }
 
-    // Step 4: Start Over (matching React logic)
+    // Step 4: Start Over - just resets, no submission
     const btnStartOver = document.getElementById( 'btn-start-over' );
     if ( btnStartOver ) {
-        btnStartOver.addEventListener( 'click', async function() {
-            // Submit donation to WordPress REST API
-            const cryptoAmount = getCryptoAmount();
-            const walletAddress = document.getElementById( 'wallet-address' )?.value || '';
-            
-            // Get nonce from WordPress localized script
-            const nonce = ( typeof cryptoDonationAPI !== 'undefined' && cryptoDonationAPI.nonce ) 
-                ? cryptoDonationAPI.nonce 
-                : '';
-            
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                if ( nonce ) {
-                    headers['X-WP-Nonce'] = nonce;
-                }
-                
-                const response = await fetch( '/wp-json/crypto-donations/v1/submit', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify( {
-                        donationType: 'crypto',
-                        amount: cryptoAmount,
-                        nzdAmount: String( nzdAmount ),
-                        currency: selectedCurrency,
-                        isAnonymous: isAnonymous,
-                        firstName: formData.firstName,
-                        lastName: formData.lastName,
-                        email: formData.email,
-                        address1: formData.address1,
-                        address2: formData.address2,
-                        country: formData.country,
-                        state: formData.state,
-                        city: formData.city,
-                        zip: formData.zip,
-                        taxReceiptEmail: taxEmail,
-                        walletAddress: walletAddress
-                    } )
-                } );
-                
-                if ( response.ok ) {
-                    const result = await response.json();
-                    console.log( 'Crypto donation submitted successfully:', result );
-                } else {
-                    console.error( 'Error submitting donation:', response.status );
-                }
-            } catch ( err ) {
-                console.error( 'Error submitting crypto donation:', err );
-            }
-
-            // Reset and go back to step 1
+        btnStartOver.addEventListener( 'click', function() {
             resetState();
             showStep( 1 );
         } );
