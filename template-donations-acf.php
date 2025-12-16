@@ -331,7 +331,55 @@ get_header();
 
         <!-- Right Column: Accordion -->
         <aside class="donations-sidebar">
-            <?php echo do_shortcode( '[kys_donate_accordions]' ); ?>
+            <div class="accordion-container" data-testid="container-ways-to-give">
+                <h2 class="accordion-main-title">
+                    <span class="icon">💡</span>
+                    Ways to Give
+                </h2>
+
+                <?php if ( have_rows( 'kys_donate_accordions' ) ) : ?>
+                    <div class="accordion">
+                        <?php 
+                        $index = 0;
+                        while ( have_rows( 'kys_donate_accordions' ) ) : the_row(); 
+                            $title = get_sub_field( 'title' );
+                            $content = get_sub_field( 'content' );
+                        ?>
+                            <div class="accordion-item" data-testid="accordion-item-<?php echo $index; ?>">
+                                <button 
+                                    class="accordion-button" 
+                                    aria-expanded="false"
+                                    aria-controls="accordion-content-<?php echo $index; ?>"
+                                    data-testid="button-accordion-<?php echo $index; ?>"
+                                >
+                                    <span class="accordion-item-title" data-testid="text-accordion-title-<?php echo $index; ?>">
+                                        <?php echo esc_html( $title ); ?>
+                                    </span>
+                                    <span class="accordion-icon">∨</span>
+                                </button>
+
+                                <div 
+                                    id="accordion-content-<?php echo $index; ?>"
+                                    class="accordion-content"
+                                    role="region"
+                                    data-testid="content-accordion-body-<?php echo $index; ?>"
+                                >
+                                    <div class="accordion-body">
+                                        <?php echo wp_kses_post( $content ); ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php 
+                            $index++;
+                        endwhile; 
+                        ?>
+                    </div>
+                <?php else : ?>
+                    <div class="no-accordion" data-testid="text-no-accordion">
+                        <p><?php esc_html_e( 'Accordion sections not configured.', 'textdomain' ); ?></p>
+                    </div>
+                <?php endif; ?>
+            </div>
         </aside>
     </div>
 </div>
