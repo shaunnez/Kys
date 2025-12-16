@@ -1075,13 +1075,36 @@ get_header();
 
 <script>
 document.addEventListener( 'DOMContentLoaded', function() {
-    // Exchange rates: 1 unit of crypto = X NZD (matching React version)
-    const exchangeRates = {
+    // Exchange rates: 1 unit of crypto = X NZD (will be updated from API)
+    let exchangeRates = {
         BTC: 130000,
         ETH: 4500,
         USDT: 1.65,
         USDC: 1.65
     };
+
+    // Fetch live rates from CoinGecko API
+    async function fetchLiveRates() {
+        try {
+            const response = await fetch(
+                'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,usd-coin&vs_currencies=nzd'
+            );
+            if ( response.ok ) {
+                const data = await response.json();
+                if ( data.bitcoin?.nzd ) exchangeRates.BTC = data.bitcoin.nzd;
+                if ( data.ethereum?.nzd ) exchangeRates.ETH = data.ethereum.nzd;
+                if ( data.tether?.nzd ) exchangeRates.USDT = data.tether.nzd;
+                if ( data['usd-coin']?.nzd ) exchangeRates.USDC = data['usd-coin'].nzd;
+                console.log( 'Live rates loaded:', exchangeRates );
+                updateConversion();
+            }
+        } catch ( err ) {
+            console.warn( 'Failed to fetch live rates, using fallback:', err );
+        }
+    }
+
+    // Fetch rates on page load
+    fetchLiveRates();
 
     const blockchainNames = {
         BTC: 'Bitcoin',
@@ -1453,15 +1476,28 @@ document.addEventListener( 'DOMContentLoaded', function() {
     const btnStartOver = document.getElementById( 'btn-start-over' );
     if ( btnStartOver ) {
         btnStartOver.addEventListener( 'click', async function() {
-            // Submit donation (matching React)
+            // Submit donation to WordPress REST API
             const cryptoAmount = getCryptoAmount();
+            const walletAddress = document.getElementById( 'wallet-address' )?.value || '';
+            
+            // Get nonce from WordPress localized script
+            const nonce = ( typeof cryptoDonationAPI !== 'undefined' && cryptoDonationAPI.nonce ) 
+                ? cryptoDonationAPI.nonce 
+                : '';
+            
             try {
-                await fetch( '/api/donations/crypto', {
+                const headers = { 'Content-Type': 'application/json' };
+                if ( nonce ) {
+                    headers['X-WP-Nonce'] = nonce;
+                }
+                
+                const response = await fetch( '/wp-json/crypto-donations/v1/submit', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: headers,
                     body: JSON.stringify( {
                         donationType: 'crypto',
                         amount: cryptoAmount,
+                        nzdAmount: String( nzdAmount ),
                         currency: selectedCurrency,
                         isAnonymous: isAnonymous,
                         firstName: formData.firstName,
@@ -1474,10 +1510,16 @@ document.addEventListener( 'DOMContentLoaded', function() {
                         city: formData.city,
                         zip: formData.zip,
                         taxReceiptEmail: taxEmail,
-                        walletAddress: document.getElementById( 'wallet-address' )?.value || ''
+                        walletAddress: walletAddress
                     } )
                 } );
-                console.log( 'Crypto donation created' );
+                
+                if ( response.ok ) {
+                    const result = await response.json();
+                    console.log( 'Crypto donation submitted successfully:', result );
+                } else {
+                    console.error( 'Error submitting donation:', response.status );
+                }
             } catch ( err ) {
                 console.error( 'Error submitting crypto donation:', err );
             }
