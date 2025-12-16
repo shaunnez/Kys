@@ -79,7 +79,7 @@ get_header();
                             <div class="crypto-card">
                                 <h3 class="crypto-card-title">Make a Donation</h3>
                                 
-                                <!-- Coin Selection Buttons -->
+                                <!-- Coin Selection Buttons (4 buttons) -->
                                 <div class="coin-buttons">
                                     <button type="button" class="coin-button active" data-currency="BTC" data-testid="button-btc">
                                         <span class="coin-icon btc">₿</span>
@@ -92,6 +92,10 @@ get_header();
                                     <button type="button" class="coin-button" data-currency="USDC" data-testid="button-usdc">
                                         <span class="coin-icon usdc">$</span>
                                         <span>USDC</span>
+                                    </button>
+                                    <button type="button" class="coin-button" data-currency="USDT" data-testid="button-usdt">
+                                        <span class="coin-icon usdt">₮</span>
+                                        <span>USDT</span>
                                     </button>
                                 </div>
 
@@ -114,7 +118,7 @@ get_header();
                                             id="nzd-amount" 
                                             class="amount-input"
                                             value="100"
-                                            min="0"
+                                            min="1"
                                             step="1"
                                             placeholder="100"
                                             data-testid="input-nzd-amount"
@@ -125,6 +129,9 @@ get_header();
                                         = <span id="crypto-conversion">0.00076923</span> <span id="crypto-currency-label">BTC</span>
                                     </div>
                                 </div>
+                                
+                                <!-- Amount Error -->
+                                <div class="amount-error" id="amount-error"></div>
 
                                 <!-- Donate Button -->
                                 <button 
@@ -283,12 +290,7 @@ get_header();
 
                                 <!-- QR Code -->
                                 <div class="qr-container">
-                                    <div class="qr-code" id="qr-code">
-                                        <div class="qr-placeholder">
-                                            <span>📱</span>
-                                            <span>QR Code</span>
-                                        </div>
-                                    </div>
+                                    <div class="qr-code" id="qr-code"></div>
                                 </div>
 
                                 <!-- Wallet Address -->
@@ -296,7 +298,7 @@ get_header();
                                     <input 
                                         type="text" 
                                         id="wallet-address"
-                                        value="bc1qllutxxxkeyeh0d...fj3m9twh35vydd67e0"
+                                        value="bc1qllutxxxkeyeh0dfj3m9twh35vydd67e0"
                                         readonly
                                         data-testid="input-wallet-address"
                                     />
@@ -329,12 +331,63 @@ get_header();
             </div>
         </div>
 
-        <!-- Right Column: Accordion -->
+        <!-- Right Column: Accordion from ACF -->
         <aside class="donations-sidebar">
-            <?php echo do_shortcode( '[kys_donate_accordions]' ); ?>
+            <div class="accordion-container" data-testid="container-ways-to-give">
+                <h2 class="accordion-main-title">
+                    <span class="icon">💡</span>
+                    Ways to Give
+                </h2>
+
+                <?php if ( have_rows( 'kys_donate_accordions' ) ) : ?>
+                    <div class="accordion">
+                        <?php 
+                        $index = 0;
+                        while ( have_rows( 'kys_donate_accordions' ) ) : the_row(); 
+                            $title = get_sub_field( 'title' );
+                            $content = get_sub_field( 'content' );
+                        ?>
+                            <div class="accordion-item" data-testid="accordion-item-<?php echo $index; ?>">
+                                <button 
+                                    class="accordion-button" 
+                                    aria-expanded="false"
+                                    aria-controls="accordion-content-<?php echo $index; ?>"
+                                    data-testid="button-accordion-<?php echo $index; ?>"
+                                >
+                                    <span class="accordion-item-title" data-testid="text-accordion-title-<?php echo $index; ?>">
+                                        <?php echo esc_html( $title ); ?>
+                                    </span>
+                                    <span class="accordion-icon">∨</span>
+                                </button>
+
+                                <div 
+                                    id="accordion-content-<?php echo $index; ?>"
+                                    class="accordion-content"
+                                    role="region"
+                                    data-testid="content-accordion-body-<?php echo $index; ?>"
+                                >
+                                    <div class="accordion-body">
+                                        <?php echo wp_kses_post( $content ); ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php 
+                            $index++;
+                        endwhile; 
+                        ?>
+                    </div>
+                <?php else : ?>
+                    <div class="no-accordion" data-testid="text-no-accordion">
+                        <p><?php esc_html_e( 'Accordion sections not configured.', 'textdomain' ); ?></p>
+                    </div>
+                <?php endif; ?>
+            </div>
         </aside>
     </div>
 </div>
+
+<!-- QR Code Library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
 <style>
     * {
@@ -486,11 +539,11 @@ get_header();
         background: #f0f0f0;
     }
 
-    /* Coin Buttons */
+    /* Coin Buttons - 4 columns */
     .coin-buttons {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.75rem;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
         margin-bottom: 1rem;
     }
 
@@ -499,7 +552,7 @@ get_header();
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        padding: 0.75rem;
+        padding: 0.75rem 0.5rem;
         border: 2px solid #e0e0e0;
         border-radius: 12px;
         background: #fff;
@@ -507,6 +560,7 @@ get_header();
         font-weight: 600;
         color: #333;
         transition: all 0.2s;
+        font-size: 0.875rem;
     }
 
     .coin-button:hover {
@@ -528,6 +582,11 @@ get_header();
         background: rgba(39, 117, 202, 0.05);
     }
 
+    .coin-button[data-currency="USDT"].active {
+        border-color: #26A17B;
+        background: rgba(38, 161, 123, 0.05);
+    }
+
     .coin-icon {
         width: 24px;
         height: 24px;
@@ -543,6 +602,7 @@ get_header();
     .coin-icon.btc { background: #F7931A; }
     .coin-icon.eth { background: #627EEA; }
     .coin-icon.usdc { background: #2775CA; }
+    .coin-icon.usdt { background: #26A17B; }
 
     /* Form Fields */
     .form-field {
@@ -578,6 +638,13 @@ get_header();
         min-height: 1rem;
     }
 
+    .amount-error {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        min-height: 1.25rem;
+    }
+
     .form-row.two-col {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -599,7 +666,7 @@ get_header();
         display: flex;
         align-items: center;
         gap: 1rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.5rem;
     }
 
     .amount-input-wrapper {
@@ -623,6 +690,10 @@ get_header();
         border-radius: 12px;
         font-size: 1.125rem;
         font-weight: 600;
+    }
+
+    .amount-input.error {
+        border-color: #ef4444;
     }
 
     .currency-suffix {
@@ -732,24 +803,18 @@ get_header();
     .qr-code {
         width: 180px;
         height: 180px;
-        background: #f5f5f5;
+        background: #fff;
         border: 2px solid #e0e0e0;
         border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
     }
 
-    .qr-placeholder {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        color: #999;
-    }
-
-    .qr-placeholder span:first-child {
-        font-size: 2.5rem;
+    .qr-code canvas {
+        max-width: 100%;
+        max-height: 100%;
     }
 
     .wallet-address-box {
@@ -816,6 +881,106 @@ get_header();
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
+    /* Sidebar / Accordion */
+    .donations-sidebar {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .accordion-container {
+        background: #fffef0;
+        border: 2px solid #d4c89f;
+        border-radius: 16px;
+        padding: 1.5rem;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .accordion-main-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+        color: #000;
+    }
+
+    .accordion-main-title .icon {
+        font-size: 1.25rem;
+    }
+
+    .accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .accordion-item {
+        border: 2px solid #d4c89f;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .accordion-button {
+        width: 100%;
+        padding: 1rem;
+        background: #fff;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #000;
+        transition: background-color 0.2s;
+    }
+
+    .accordion-button:hover {
+        background: #f5f5f5;
+    }
+
+    .accordion-button[aria-expanded="true"] {
+        background: #f0f0f0;
+    }
+
+    .accordion-icon {
+        font-size: 0.75rem;
+        transition: transform 0.3s;
+        color: #666;
+    }
+
+    .accordion-button[aria-expanded="true"] .accordion-icon {
+        transform: scaleY(-1);
+    }
+
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s;
+    }
+
+    .accordion-button[aria-expanded="true"] ~ .accordion-content {
+        max-height: 500px;
+    }
+
+    .accordion-body {
+        padding: 1rem;
+        color: #555;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .accordion-body p {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .accordion-body p:last-child {
+        margin-bottom: 0;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .donations-container {
@@ -826,6 +991,10 @@ get_header();
             font-size: 2rem;
         }
 
+        .accordion-container {
+            position: static;
+        }
+
         .amount-row {
             flex-direction: column;
             align-items: stretch;
@@ -833,6 +1002,10 @@ get_header();
 
         .conversion-display {
             text-align: center;
+        }
+
+        .coin-buttons {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 </style>
@@ -883,6 +1056,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
     const currencyLabel = document.getElementById( 'crypto-currency-label' );
     const anonymousCheckbox = document.getElementById( 'is-anonymous' );
     const personalFields = document.getElementById( 'personal-info-fields' );
+    const amountErrorEl = document.getElementById( 'amount-error' );
 
     // Tab functionality
     tabButtons.forEach( button => {
@@ -899,6 +1073,20 @@ document.addEventListener( 'DOMContentLoaded', function() {
         } );
     } );
 
+    // Accordion functionality
+    const accordionButtons = document.querySelectorAll( '.accordion-button' );
+    accordionButtons.forEach( button => {
+        button.addEventListener( 'click', function() {
+            const isExpanded = this.getAttribute( 'aria-expanded' ) === 'true';
+            const contentId = this.getAttribute( 'aria-controls' );
+            const content = document.getElementById( contentId );
+            if ( content ) {
+                this.setAttribute( 'aria-expanded', !isExpanded );
+                content.style.maxHeight = isExpanded ? '0px' : content.scrollHeight + 'px';
+            }
+        } );
+    } );
+
     // Calculate crypto amount (matching React logic)
     function getCryptoAmount() {
         return ( nzdAmount / exchangeRates[ selectedCurrency ] ).toFixed( 8 );
@@ -909,6 +1097,18 @@ document.addEventListener( 'DOMContentLoaded', function() {
         const crypto = getCryptoAmount();
         if ( conversionEl ) conversionEl.textContent = crypto;
         if ( currencyLabel ) currencyLabel.textContent = selectedCurrency;
+    }
+
+    // Validate amount (must be > 0)
+    function validateAmount() {
+        if ( nzdAmount <= 0 ) {
+            if ( amountErrorEl ) amountErrorEl.textContent = 'Please enter an amount greater than $0';
+            if ( nzdInput ) nzdInput.classList.add( 'error' );
+            return false;
+        }
+        if ( amountErrorEl ) amountErrorEl.textContent = '';
+        if ( nzdInput ) nzdInput.classList.remove( 'error' );
+        return true;
     }
 
     // Coin button click
@@ -940,6 +1140,11 @@ document.addEventListener( 'DOMContentLoaded', function() {
             if ( val === '' || parseFloat( val ) >= 0 ) {
                 nzdAmount = parseFloat( val ) || 0;
                 updateConversion();
+                // Clear error if valid
+                if ( nzdAmount > 0 ) {
+                    if ( amountErrorEl ) amountErrorEl.textContent = '';
+                    this.classList.remove( 'error' );
+                }
             }
         } );
     }
@@ -966,7 +1171,8 @@ document.addEventListener( 'DOMContentLoaded', function() {
     // Show field error
     function showError( fieldId, message ) {
         const input = document.getElementById( fieldId );
-        const errorEl = document.getElementById( 'error-' + fieldId.replace( '-', '' ).replace( 'first-name', 'firstName' ).replace( 'last-name', 'lastName' ).replace( 'donor-email', 'email' ) );
+        const errorId = 'error-' + fieldId.replace( 'first-name', 'firstName' ).replace( 'last-name', 'lastName' ).replace( 'donor-email', 'email' );
+        const errorEl = document.getElementById( errorId );
         if ( input ) input.classList.add( 'error' );
         if ( errorEl ) errorEl.textContent = message;
     }
@@ -1042,6 +1248,22 @@ document.addEventListener( 'DOMContentLoaded', function() {
         };
     }
 
+    // Generate QR code
+    function generateQRCode( address ) {
+        const qrContainer = document.getElementById( 'qr-code' );
+        if ( qrContainer && typeof QRCode !== 'undefined' ) {
+            qrContainer.innerHTML = '';
+            QRCode.toCanvas( address, { width: 160, margin: 2 }, function( err, canvas ) {
+                if ( err ) {
+                    console.error( 'QR Code error:', err );
+                    qrContainer.innerHTML = '<div class="qr-placeholder"><span>📱</span><span>QR Code</span></div>';
+                } else {
+                    qrContainer.appendChild( canvas );
+                }
+            } );
+        }
+    }
+
     // Step navigation
     function showStep( step ) {
         currentStep = step;
@@ -1055,9 +1277,14 @@ document.addEventListener( 'DOMContentLoaded', function() {
             const finalAmountEl = document.getElementById( 'final-amount' );
             const warningCurrency = document.getElementById( 'warning-currency' );
             const warningBlockchain = document.getElementById( 'warning-blockchain' );
+            const walletAddress = document.getElementById( 'wallet-address' )?.value || '';
+            
             if ( finalAmountEl ) finalAmountEl.textContent = cryptoAmount + ' ' + selectedCurrency;
             if ( warningCurrency ) warningCurrency.textContent = selectedCurrency;
             if ( warningBlockchain ) warningBlockchain.textContent = blockchainNames[ selectedCurrency ];
+            
+            // Generate real QR code
+            generateQRCode( walletAddress );
         }
     }
 
@@ -1075,6 +1302,7 @@ document.addEventListener( 'DOMContentLoaded', function() {
         if ( currencySelect ) currencySelect.value = 'BTC';
         if ( anonymousCheckbox ) anonymousCheckbox.checked = false;
         if ( personalFields ) personalFields.style.display = 'block';
+        if ( amountErrorEl ) amountErrorEl.textContent = '';
 
         // Reset form inputs
         [ 'first-name', 'last-name', 'donor-email', 'address1', 'address2', 'country', 'state', 'city', 'zip', 'tax-email' ].forEach( id => {
@@ -1098,11 +1326,13 @@ document.addEventListener( 'DOMContentLoaded', function() {
         } );
     } );
 
-    // Step 1: Donate button
+    // Step 1: Donate button (with amount validation)
     const btnDonate = document.getElementById( 'btn-donate-crypto' );
     if ( btnDonate ) {
         btnDonate.addEventListener( 'click', function() {
-            showStep( 2 );
+            if ( validateAmount() ) {
+                showStep( 2 );
+            }
         } );
     }
 
