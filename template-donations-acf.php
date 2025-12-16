@@ -867,6 +867,106 @@ get_header();
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
+    /* Sidebar / Accordion */
+    .donations-sidebar {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .accordion-container {
+        background: #fffef0;
+        border: 2px solid #d4c89f;
+        border-radius: 16px;
+        padding: 1.5rem;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .accordion-main-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+        color: #000;
+    }
+
+    .accordion-main-title .icon {
+        font-size: 1.25rem;
+    }
+
+    .accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .accordion-item {
+        border: 2px solid #d4c89f;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .accordion-button {
+        width: 100%;
+        padding: 1rem;
+        background: #fff;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #000;
+        transition: background-color 0.2s;
+    }
+
+    .accordion-button:hover {
+        background: #f5f5f5;
+    }
+
+    .accordion-button[aria-expanded="true"] {
+        background: #f0f0f0;
+    }
+
+    .accordion-icon {
+        font-size: 0.75rem;
+        transition: transform 0.3s;
+        color: #666;
+    }
+
+    .accordion-button[aria-expanded="true"] .accordion-icon {
+        transform: scaleY(-1);
+    }
+
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .accordion-content.open {
+        max-height: 1000px;
+    }
+
+    .accordion-body {
+        padding: 1rem;
+        color: #555;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .accordion-body p {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .accordion-body p:last-child {
+        margin-bottom: 0;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .donations-container {
@@ -947,6 +1047,27 @@ document.addEventListener( 'DOMContentLoaded', function() {
             this.classList.add( 'active' );
             this.setAttribute( 'aria-selected', 'true' );
             document.getElementById( 'tab-panel-' + tabName ).classList.add( 'active' );
+        } );
+    } );
+
+    // Accordion functionality
+    const accordionButtons = document.querySelectorAll( '.accordion-button' );
+    accordionButtons.forEach( button => {
+        button.addEventListener( 'click', function() {
+            const isExpanded = this.getAttribute( 'aria-expanded' ) === 'true';
+            const contentId = this.getAttribute( 'aria-controls' );
+            const content = document.getElementById( contentId );
+            
+            if ( content ) {
+                this.setAttribute( 'aria-expanded', !isExpanded );
+                if ( !isExpanded ) {
+                    content.classList.add( 'open' );
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                } else {
+                    content.classList.remove( 'open' );
+                    content.style.maxHeight = '0px';
+                }
+            }
         } );
     } );
 
